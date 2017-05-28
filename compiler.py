@@ -1,9 +1,12 @@
 from check import *
 
-dir = open('test.txt','r')
-parenthes_brace_bool, parenthes_brace_Res, parenthes_brace_Token, problem_type = parenthes_brace_Check(dir)
+from Syntax import *
+
+with open('test.txt','r') as file:
+    parenthes_brace_bool, parenthes_brace_Res, parenthes_brace_Token, problem_type = parenthes_brace_Check(file)
 if parenthes_brace_bool:
-    print('Continue to Write')
+    with open('test.txt','r') as tmp_file:
+        check_syntax(tmp_file)
 else:
     if parenthes_brace_Res == '0':
         if problem_type == 'parenthes':

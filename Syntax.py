@@ -34,8 +34,41 @@ automata = [
     # [p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p],
 ]
 
-def check_syntax(input_file):
+def check_syntax(input_file,if_func = False,j = None,ind = None,end_if = None):
     current_state = 0
-    for line in input_file:
-        for token in line.replace('\t',' ').split(' '):
+    if_counter = 0
+    if_boolean = False
+    if_func_tmp = if_func
+    while_boolean = False
+    list = [line for line in input_file]
+    line_numbers = len(list)
+    i = 0
+    if j != None:
+        i=j
+    while(i < line_numbers):
+        tmp_list = enumerate(list[i].replace('\t', ' ').split(' '))
+        if if_func_tmp:
+            tmp_list = enumerate(list[i].replace('\t',' ').split(' ')[ind:])
+            if_func_tmp = False
+            if_boolean = False
+        for index,token in tmp_list:
             current_state = automata[current_state][token_num(token.strip())]
+            if if_func and token.strip() == end_if:
+                return i,index
+            if if_boolean:
+                print(token.strip())
+                if token.strip() == '(':
+                    if_counter += 1
+                elif token.strip() == ')':
+                    if_counter -= 1
+                if if_counter == 0:
+                    if (len(list[i].replace('\t',' ').replace('\n','').split(' '))>index+1 and list[i].replace('\t',' ').replace('\n','').split(' ')[index+1] == '{') or (len(list)>=i+1 and list[i+1].replace('\t',' ').replace('\n','').split(' ')[0] == '{'):
+                        check_syntax(input_file,if_func=True,j=i,ind = index,end_if = '}')
+                    else :
+                        check_syntax(input_file,if_func=True,j=i, ind=index, end_if=';')
+            if current_state == 1:
+                if token.strip() == 'if':
+                    if_boolean = True
+                else :
+                    while_boolean = True
+        i += 1
