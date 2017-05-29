@@ -1,1 +1,1 @@
-'c' == alireza
+int a = 2 * 10 ;

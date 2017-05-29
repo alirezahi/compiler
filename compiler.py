@@ -6,7 +6,7 @@ with open('test.txt','r') as file:
     parenthes_brace_bool, parenthes_brace_Res, parenthes_brace_Token, problem_type = parenthes_brace_Check(file)
 if parenthes_brace_bool:
     with open('test.txt','r') as tmp_file:
-        check_statement(tmp_file)
+        check_statement(tmp_file,initiate=True,end=10)
 else:
     if parenthes_brace_Res == '0':
         if problem_type == 'parenthes':

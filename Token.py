@@ -14,51 +14,43 @@ def isCharacter(token):
     if len(token) == 3 and token[0] == '\'' and token[2] == '\'' and token[1].isalpha():
         return True
 
-def token_num(token):
+def token_statement_num(token):
     if token in assignment_operators[1:]:
         return 0
-    elif token in logical_operators[:2]:
-        return 1
-    elif token in relational_operators:
-        return 2
     elif token in arithmetic_operators[:-2]:
-        return 3
+        return 1
     elif token in arithmetic_operators[-2:]:
-        return 4
+        return 2
     elif token == 'bool':
-        return 5
+        return 3
     elif token == 'int':
-        return 6
+        return 4
     elif token == 'char':
-        return 7
+        return 5
     elif token == ';':
-        return 8
+        return 6
     elif token == ',':
-        return 9
+        return 7
     elif token == '=':
-        return 10
+        return 8
     elif token == 'if':
-        return 11
+        return 9
     elif token == 'while':
-        return 12
-    elif token == 'else':
-        return 13
+        return 10
     elif token == '(':
-        return 14
+        return 11
     elif token == ')':
-        return 15
-    elif token in boolean:
-        return 16
+        return 12
     elif isVariable(token):
-        return 17
+        return 13
     elif isCharacter(token):
-        return 18
+        return 14
     else:
         try:
             int(token)
-            return 19
+            return 15
         except:
-            return 20
+            return 16
 
 def token_expression_num(token):
     if token == '!':

@@ -47,35 +47,73 @@ expression_automata = [
     [-14,0,-14,-14,-14,12,-14,-14,-14,-14,-14]
 ]
 
+statement_automata = [
+    [-1,-1,-1,5,8,1,-1,-1,-1,14,15,-1,-1,12,-1,-1,-1],
+    [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,2,-1,-1,-1],
+    [-2,-2,-2,-2,-2,-2,0,1,3,-2,-2,-2,-2,-2,-2,-2,-2],
+    [-3,-3,-3,-3,-3,-3,-3,-3,-3,-3,-3,3,-3,4,4,-3,-3],
+    [-4,-4,-4,-4,-4,-4,0,-4,-4,-4,-4,-4,4,6,-4,-4,-4],
+    [-5,-5,-5,-5,-5,-5,-5,-5,-5,-5,-5,-5,-5,6,-5,-5,-5],
+    [-6,-6,-6,-6,-6,-6,-6,5,7,-6,-6,-6,-6,-6,-6,-6,-6],
+    [-7,-7,-7,-7,-7,-7,0,-7,-7,-7,-7,-7,-7,-7,-7,-7,-7],
+    [-8,-8,-8,-8,-8,-8,-8,-8,-8,-8,-8,-8,-8,9,-8,-8,-8],
+    [-9,-9,-9,-9,-9,-9,0,8,10,-9,-9,-9,-9,-9,-9,-9,-9],
+    [-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,10,-10,11,-10,11,-10],
+    [-11,10,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,11,-11,-11,-11,-11],
+    [10,-12,13,-12,-12,-12,-12,-12,10,-12,-12,-12,-12,-12,-12,-12,-12],
+    [-13,-13,-13,-13,-13,-13,0,-13,-13,-13,-13,-13,-13,-13,-13,-13,-13]
+]
 
-from Token import token_expression_num
+from Token import token_expression_num , token_statement_num
 
 def get_line(token_lines,token_number):
     for index,line_num in enumerate(token_lines):
         if line_num == token_number:
             final_result = index
             break
-        if line_num > token_number:
+        elif line_num > token_number:
             final_result = index-1
             break
     return final_result
 
+def find_end(tokens,start_token):
+    return 0
 
-def check_statement(input_file):
+def check_expression(tokens,start=0,end=0):
     current_state = 0
-    tokens_lines = []
-    tokens = []
-    line_num = 0
-    for line in input_file:
-        for token in line.replace('\n','').replace('\t',' ').split(' '):
-            tokens.append(token)
-            line_num += 1
-        tokens_lines.append(line_num)
-    tokens_number = len(tokens)
-    token_enum = 0
-    while token_enum < tokens_number:
-        # print(tokens[token_enum])
+    token_enum = start + 0
+    while token_enum < end:
         current_state = expression_automata[current_state][token_expression_num(tokens[token_enum].strip())]
-        print(current_state)
         token_enum += 1
 
+def check_statement(input_tokens,initiate=False,start=0,end=0):
+    current_state = 0
+    if initiate:
+        tokens_lines = []
+        tokens = []
+        line_num = 0
+        for line in input_tokens:
+            for token in line.replace('\t', ' ').replace('\n', '').split(' '):
+                if token.strip() != '':
+                    tokens.append(token.strip())
+                    line_num += 1
+            tokens_lines.append(line_num)
+        tokens_number = len(tokens)
+        token_enum = start
+        token_end = tokens_number + 0
+    else:
+        tokens = input_tokens
+        token_enum = start
+        token_end = end
+    while token_enum < token_end:
+        tmp_token = tokens[token_enum]
+        current_state = statement_automata[current_state][token_statement_num(tokens[token_enum].strip())]
+        if current_state == 0 and tmp_token == 'if':
+            token_enum = check_if(tokens,start=token_enum,end=find_end(tokens,token_enum))
+        token_enum += 1
+
+def check_if(tokens,start,end):
+    return 0
+
+def check_while(tokens):
+    return 0
