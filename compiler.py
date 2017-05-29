@@ -10,8 +10,8 @@ if parenthes_brace_bool:
         if result[1]:
             print('Successful')
         else:
-            print(result[0])
-            print(result[2])
+
+            print('Line '+ str(get_line(tokens_lines,result[2])) +' : Error ')
 else:
     if parenthes_brace_Res == '0':
         if problem_type == 'parenthes':
