@@ -113,10 +113,11 @@ def find_end(tokens,start_token,char):
 def check_expression(tokens,start=0,end=0):
     current_state = 0
     token_enum = start + 0
-    while token_enum < end:
+    while token_enum < end and current_state >= 0:
         current_state = expression_automata[current_state][token_expression_num(tokens[token_enum].strip())]
-        print(current_state)
         token_enum += 1
+    if current_state < 0 :
+        return current_state
 
 def check_statement(input_tokens,initiate=False,start=0,end=0):
     current_state = 0
@@ -137,18 +138,26 @@ def check_statement(input_tokens,initiate=False,start=0,end=0):
         tokens = input_tokens
         token_enum = start
         token_end = end
-    while token_enum < token_end:
+    while token_enum < token_end and current_state >= 0:
         tmp_token = tokens[token_enum].strip()
         current_state = statement_automata[current_state][token_statement_num(tmp_token)]
-        print(tmp_token)
-        print(current_state)
-        print()
         if current_state == 0 and tmp_token == 'if':
-            token_enum = check_if(tokens,start=token_enum+1) + 1
+            result = check_if(tokens,start=token_enum+1)
+            if result[1]:
+                token_enum = result[0] + 1
+            else:
+                return [result[0], False , result[2]]
         elif current_state == 0 and tmp_token == 'while':
-            token_enum = check_while(tokens,start=token_enum+1) + 1
-        else:
+            result = check_while(tokens,start=token_enum+1)
+            if result[1]:
+                token_enum = result[0] + 1
+            else:
+                return [result[0],False , result[2]]
+        elif current_state >= 0:
             token_enum += 1
+    if current_state < 0:
+        return [current_state,False , token_enum]
+    return [current_state , True , token_enum]
 
 def check_if(tokens,start):
     token_enum = start + 0
@@ -158,19 +167,27 @@ def check_if(tokens,start):
         if tokens[start_statement + 1] == '{':
             end_statement = find_end(tokens, start_statement + 1, char='}')
             statement_bool = check_statement(input_tokens=tokens, start=start_statement + 2, end=end_statement)
+            if statement_bool[0] < 0:
+                return [statement_bool[0] , False , statement_bool[2]]
         else:
             end_statement = find_end(tokens, start_statement + 1, char=';')
             statement_bool = check_statement(input_tokens=tokens, start=start_statement + 1, end=end_statement)
-        if tokens[end_statement] == 'else':
-            if tokens[end_statement + 1] == '{':
-                end_statement_tmp = find_end(tokens, end_statement + 1, char='}')
-                statement_bool = check_statement(input_tokens=tokens, start=end_statement + 2, end=end_statement_tmp)
+            if statement_bool[0] < 0:
+                return [statement_bool[0] , False , statement_bool[2]]
+        if tokens[end_statement+1] == 'else':
+            if tokens[end_statement + 2] == '{':
+                end_statement_tmp = find_end(tokens, end_statement + 2, char='}')
+                statement_bool = check_statement(input_tokens=tokens, start=end_statement + 3, end=end_statement_tmp)
+                if statement_bool[0] < 0:
+                    return [statement_bool[0] , False , statement_bool[2]]
             else:
-                end_statement_tmp = find_end(tokens, start_statement + 1, char=';')
-                statement_bool = check_statement(input_tokens=tokens, start=end_statement + 1, end=end_statement_tmp)
-            return end_statement_tmp
+                end_statement_tmp = find_end(tokens, end_statement + 2, char=';')
+                statement_bool = check_statement(input_tokens=tokens, start=end_statement + 2, end=end_statement_tmp)
+                if statement_bool[0] < 0:
+                    return [statement_bool[0] , False , statement_bool[2]]
+            return [end_statement_tmp , True]
         else:
-            return end_statement
+            return [end_statement , True]
     return -1
 
 def check_while(tokens,start):
@@ -180,9 +197,13 @@ def check_while(tokens,start):
         check_expression(tokens, start=token_enum + 1, end=start_statement)
         if tokens[start_statement+1] == '{':
             end_statement = find_end(tokens, start_statement + 1, char='}')
-            statement_bool = check_statement(input_tokens=tokens, start=start_statement + 2, end=end_statement)
+            result = check_statement(input_tokens=tokens, start=start_statement + 2, end=end_statement)
+            if not result[1]:
+                return [result[0],False , result[2]]
         else:
             end_statement = find_end(tokens, start_statement + 1, char=';')
-            statement_bool = check_statement(input_tokens=tokens, start=start_statement + 1, end=end_statement)
-        return end_statement
+            result = check_statement(input_tokens=tokens, start=start_statement + 1, end=end_statement)
+            if not result[1]:
+                return [result[0], False , result[2]]
+        return [end_statement , True]
     return -1

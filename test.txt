@@ -1,5 +1,0 @@
-if ( love == 0 )
-    life -- ;
-else {
-    life += 10 ;
-}
