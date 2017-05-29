@@ -161,7 +161,16 @@ def check_if(tokens,start):
         else:
             end_statement = find_end(tokens, start_statement + 1, char=';')
             statement_bool = check_statement(input_tokens=tokens, start=start_statement + 1, end=end_statement)
-        return end_statement
+        if tokens[end_statement] == 'else':
+            if tokens[end_statement + 1] == '{':
+                end_statement_tmp = find_end(tokens, end_statement + 1, char='}')
+                statement_bool = check_statement(input_tokens=tokens, start=end_statement + 2, end=end_statement_tmp)
+            else:
+                end_statement_tmp = find_end(tokens, start_statement + 1, char=';')
+                statement_bool = check_statement(input_tokens=tokens, start=end_statement + 1, end=end_statement_tmp)
+            return end_statement_tmp
+        else:
+            return end_statement
     return -1
 
 def check_while(tokens,start):

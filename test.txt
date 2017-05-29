@@ -1,6 +1,5 @@
-int a = 2 ;
-while ( a > 2 ) {
-    a -- ;
-    if ( 2 + 3 == 1 )
-        a = -1 ;
+if ( love == 0 )
+    life -- ;
+else {
+    life += 10 ;
 }
