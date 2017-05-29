@@ -25,4 +25,3 @@ def parenthes_brace_Check(file_input):
     elif brace_counter > 0:
         return False,'0','1','brace'
     return True,[],[],[]
-
