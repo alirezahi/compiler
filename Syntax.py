@@ -142,7 +142,7 @@ def check_statement(tokens,start=0,end=0):
                 return result
         elif current_state >= 0:
             token_enum += 1
-    if current_state < 0:
+    if current_state != 0:
         return [current_state,False , token_enum]
     return [current_state , True , token_enum]
 
@@ -157,27 +157,27 @@ def check_if(tokens,start):
             if tokens[start_statement + 1] == '{':
                 end_statement = find_end(tokens, start_statement + 1, char='}')
                 statement_bool = check_statement(tokens=tokens, start=start_statement + 2, end=end_statement)
-                if statement_bool[0] < 0:
+                if not statement_bool[1]:
                     return [statement_bool[0] , False , statement_bool[2]]
             else:
                 end_statement = find_end(tokens, start_statement + 1, char=';')
                 if end_statement == -1 :
                     return [-1000, False , start_statement+1]
                 statement_bool = check_statement(tokens=tokens, start=start_statement + 1, end=end_statement)
-                if statement_bool[0] < 0:
+                if not statement_bool[1]:
                     return [statement_bool[0] , False , statement_bool[2]]
             if len(tokens) > end_statement+1 and tokens[end_statement+1] == 'else':
                 if tokens[end_statement + 2] == '{':
                     end_statement_tmp = find_end(tokens, end_statement + 2, char='}')
                     statement_bool = check_statement(tokens=tokens, start=end_statement + 3, end=end_statement_tmp)
-                    if statement_bool[0] < 0:
+                    if not statement_bool[1]:
                         return [statement_bool[0] , False , statement_bool[2]]
                 else:
                     end_statement_tmp = find_end(tokens, end_statement + 2, char=';')
                     if end_statement_tmp == -1:
                         return [start_statement + 1, False, -1000]
                     statement_bool = check_statement(tokens=tokens, start=end_statement + 2, end=end_statement_tmp)
-                    if statement_bool[0] < 0:
+                    if not statement_bool[1]:
                         return [statement_bool[0] , False , statement_bool[2]]
                 return [end_statement_tmp , True]
             else:
