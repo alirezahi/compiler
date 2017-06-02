@@ -2,15 +2,25 @@ from check import *
 
 from Syntax import *
 
+tokens_lines = []
+
 with open('test.txt','r') as file:
     parenthes_brace_bool, parenthes_brace_Res, parenthes_brace_Token, problem_type = parenthes_brace_Check(file)
 if parenthes_brace_bool:
     with open('test.txt','r') as tmp_file:
-        result = check_statement(tmp_file,initiate=True,end=10)
+        tokens = []
+        line_num = 0
+        for line in tmp_file:
+            for token in line.replace('\t', ' ').replace('\n', '').split(' '):
+                if token.strip() != '':
+                    tokens.append(token.strip())
+                    line_num += 1
+            tokens_lines.append(line_num)
+        tokens_number = len(tokens)
+        result = check_statement(tokens,end=tokens_number)
         if result[1]:
             print('Successful')
         else:
-
             print('Line '+ str(get_line(tokens_lines,result[2])) +' : Error ')
 else:
     if parenthes_brace_Res == '0':

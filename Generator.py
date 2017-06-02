@@ -1,0 +1,7 @@
+symbol_table = []
+identifier_table = []
+keyword_table = []
+regmem_table = []
+number_table = []
+operator_table = []
+punctutation_table = []
