@@ -1,19 +1,19 @@
 from Token import *
 
 expression_automata = [
-    [0,-1,-1,-1,0,-1,1,10,3,2,-1],
-    [-2,0,-2,-2,-2,1,-2,-2,-2,-2,-2],
-    [-3,-3,5,4,-3,2,-3,-3,-3,-3,-3],
-    [-4,0,5,4,-4,3,-4,-4,-4,-4,-4],
-    [-5,-5,-5,-5,4,-5,-5,-5,2,2,-5],
-    [5,-6,-6,-6,5,-6,8,-6,7,6,-1],
-    [-7,0,-7,9,-7,6,-7,-7,-7,-7,-7],
-    [-8,0,-8,9,-4,7,-8,-8,-8,-8,-8],
-    [-9,0,-9,-9,-9,8,-9,-9,-9,-9,-9],
-    [-10,-10,-10,-10,9,-10,-10,-10,6,6,-10],
-    [-12,-12,11,-12,-12,10,-12,-12,-12,-12,-12],
-    [-13,-13,-13,-13,-13,-13,-13,12,12,-13,-13],
-    [-14,0,-14,-14,-14,12,-14,-14,-14,-14,-14]
+    [0, -1, -1, -1, 0, -1, 1, 10, 3, 2, -1],
+    [-2, 0, -2, -2, -2, 1, -2, -2, -2, -2, -2],
+    [-3, -3, 5, 4, -3, 2, -3, -3, -3, -3, -3],
+    [-4, 0, 5, 4, -4, 3, -4, -4, -4, -4, -4],
+    [-5, -5, -5, -5, 4, -5, -5, -5, 2, 2, -5],
+    [5, -6, -6, -6, 5, -6, 8, -6, 7, 6, -1],
+    [-7, 0, -7, 9, -7, 6, -7, -7, -7, -7, -7],
+    [-8, 0, -8, 9, -4, 7, -8, -8, -8, -8, -8],
+    [-9, 0, -9, -9, -9, 8, -9, -9, -9, -9, -9],
+    [-10, -10, -10, -10, 9, -10, -10, -10, 6, 6, -10],
+    [-12, -12, 11, -12, -12, 10, -12, -12, -12, -12, -12],
+    [-13, -13, -13, -13, -13, -13, -13, 12, 12, -13, -13],
+    [-14, 0, -14, -14, -14, 12, -14, -14, -14, -14, -14]
 ]
 
 statement_automata = [
@@ -35,7 +35,7 @@ statement_automata = [
     [10, 10, 13, -15, -15, -15, 0, -15, -15, -15, -15, -15, 15, -15, -15, -15, -15]  # 15
 ]
 
-operation_priority = {'(':1 ,'+': 2, '-': 2, '*': 4, '/': 4}
+operation_priority = {'(':1 ,'+': 2, '-': 2, '*': 3, '/': 3}
 
 operation_stack = []
 variable_stack = []
@@ -55,19 +55,21 @@ def calculate():
     if tmp_operation == '-':
         first_num = get_value(variable_stack.pop())
         second_num = get_value(variable_stack.pop())
-        return second_num - first_num
+        return [True,second_num - first_num]
     if tmp_operation == '+':
         first_num = get_value(variable_stack.pop())
         second_num = get_value(variable_stack.pop())
-        return second_num + first_num
+        return [True,second_num + first_num]
     if tmp_operation == '*':
         first_num = get_value(variable_stack.pop())
         second_num = get_value(variable_stack.pop())
-        return second_num * first_num
+        return [True,second_num * first_num]
     if tmp_operation == '/':
         first_num = get_value(variable_stack.pop())
         second_num = get_value(variable_stack.pop())
-        return second_num / first_num
+        if first_num == 0:
+            return [False,'Division by Zero']
+        return [True,second_num / first_num]
 
 
 def find_end(tokens,start_token,char):
@@ -118,7 +120,7 @@ def check_expression(tokens,start=0,end=0):
     return [current_state,True,token_enum]
 
 def sem_check(tokens,start=0,end=0):
-    check_statement(tokens=tokens,start=start,end=end)
+    return check_statement(tokens=tokens,start=start,end=end)
 
 def check_statement(tokens,start=0,end=0):
     current_state = 0
@@ -154,21 +156,38 @@ def check_statement(tokens,start=0,end=0):
         if current_state == 10 and tmp_token is not '=':
             if len(operation_stack) > 0 and operation_priority[operation_stack[-1]] > operation_priority[tmp_token] and tmp_token is not '(':
                 while len(operation_stack) > 0 and operation_priority[operation_stack[-1]] > operation_priority[tmp_token] and tmp_token is not '(':
-                    variable_stack.append(calculate())
-            elif len(operation_stack)>0 and tmp_token!='(' and operation_stack[-1]!='(':
-                variable_stack.append(calculate())
+                    cal_res = calculate()
+                    if cal_res[0]:
+                        variable_stack.append(cal_res[1])
+                    else:
+                        return cal_res
+            elif len(operation_stack)>0 and tmp_token!='(' and operation_stack[-1]!='(' and operation_priority[operation_stack[-1]] == operation_priority[tmp_token]:
+                cal_res = calculate()
+                if cal_res[0]:
+                    variable_stack.append(cal_res[1])
+                else:
+                    return cal_res
             operation_stack.append(tmp_token)
         if current_state == 11 :
             if tmp_token == ')':
                 while operation_stack[-1] is not '(':
-                    variable_stack.append(calculate())
+                    cal_res = calculate()
+                    if cal_res[0]:
+                        variable_stack.append(cal_res[1])
+                    else:
+                        return cal_res
                 operation_stack.pop()
             else:
                 variable_stack.append(tmp_token)
         if tmp_state == 11 and current_state == 0:
             while len(operation_stack)> 0:
-                variable_stack.append(calculate())
-            defined_var[last_variable] = variable_stack.pop()
+                cal_res = calculate()
+                if cal_res[0]:
+                    variable_stack.append(cal_res[1])
+                else:
+                    return cal_res
+            defined_var[last_variable][1] = int(variable_stack.pop())
+            print(defined_var[last_variable])
         if current_state == 0 and tmp_token == 'if':
             result = check_if(tokens,start=token_enum+1)
             if result[1]:
