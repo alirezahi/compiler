@@ -35,7 +35,7 @@ statement_automata = [
     [10, 10, 13, -15, -15, -15, 0, -15, -15, -15, -15, -15, 15, -15, -15, -15, -15]  # 15
 ]
 
-operation_priority = {'+': 2, '-': 2, '*': 3, '/': 3}
+operation_priority = {'(':1 ,'+': 2, '-': 2, '*': 4, '/': 4}
 
 operation_stack = []
 variable_stack = []
@@ -125,6 +125,8 @@ def check_statement(tokens,start=0,end=0):
     token_enum = start
     token_end = end
     while token_enum < token_end and current_state >= 0:
+        print(variable_stack)
+        print(operation_stack)
         tmp_token = tokens[token_enum].strip()
         tmp_state = current_state + 0
         current_state = statement_automata[current_state][token_statement_num(tmp_token)]
@@ -152,15 +154,19 @@ def check_statement(tokens,start=0,end=0):
             else:
                 return [False, token_enum, 'Variable is Defined Before']
         if current_state == 10 and tmp_token is not '=':
-            operation_stack.append(tmp_token)
-            if len(operation_stack)> 1 and operation_priority[operation_stack[-2]] < operation_priority[operation_stack[-1]]:
+            if len(operation_stack) > 0 and operation_priority[operation_stack[-1]] > operation_priority[tmp_token] and tmp_token is not '(':
+                while len(operation_stack) > 0 and operation_priority[operation_stack[-1]] > operation_priority[tmp_token] and tmp_token is not '(':
+                    variable_stack.append(calculate())
+            elif len(operation_stack)>0 and tmp_token!='(' and operation_stack[-1]!='(':
                 variable_stack.append(calculate())
+            operation_stack.append(tmp_token)
         if current_state == 11 :
             if tmp_token == ')':
                 while operation_stack[-1] is not '(':
                     variable_stack.append(calculate())
                 operation_stack.pop()
-            variable_stack.append(tmp_token)
+            else:
+                variable_stack.append(tmp_token)
         if tmp_state == 11 and current_state == 0:
             while len(operation_stack)> 0:
                 variable_stack.append(calculate())

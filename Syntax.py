@@ -31,6 +31,9 @@
 #     [-66,-66,-66,-66,-66,-66,-66,-66,-66,-66,-66,-66,-66,-66,-66,-66,-66,-66,28,-66,-66]
 #     # [p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p],
 # ]
+
+from Token import token_expression_num , token_statement_num
+
 expression_automata = [
     [0,-1,-1,-1,0,-1,1,10,3,2,-1],
     [-2,0,-2,-2,-2,1,-2,-2,-2,-2,-2],
@@ -68,7 +71,7 @@ statement_automata = [
 
 tokens_lines = []
 
-from Token import token_expression_num , token_statement_num
+
 
 def get_line(token_lines,token_number):
     for index,line_num in enumerate(token_lines):
