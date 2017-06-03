@@ -128,7 +128,7 @@ def check_expression(tokens,start=0,end=0):
                 variable_stack.append(tmp_token)
             else:
                 return [False, token_enum, 'Variable is not Defined']
-        if current_state == 4:
+        if current_state == 4 or current_state == 9:
             if len(operation_stack) > 0 and operation_priority[operation_stack[-1]] > operation_priority[tmp_token] and tmp_token is not '(':
                 while len(operation_stack) > 0 and operation_priority[operation_stack[-1]] > operation_priority[tmp_token] and tmp_token is not '(':
                     cal_res = calculate()
@@ -144,7 +144,7 @@ def check_expression(tokens,start=0,end=0):
                 else:
                     return cal_res+[token_enum]
             operation_stack.append(tmp_token)
-        if current_state == 2:
+        if current_state == 2 or current_state == 6:
             if tmp_token == ')':
                 while operation_stack[-1] is not '(':
                     cal_res = calculate()
@@ -155,7 +155,7 @@ def check_expression(tokens,start=0,end=0):
                 operation_stack.pop()
             else:
                 variable_stack.append(tmp_token)
-        if tmp_state == 2 and current_state == 5:
+        if (tmp_state == 2 and current_state == 5) or (tmp_state == 6 and current_state == 0) or token_enum == end-1:
             while len(operation_stack) > 0:
                 cal_res = calculate()
                 if cal_res[1]:
@@ -240,13 +240,13 @@ def check_statement(tokens,start=0,end=0):
         if current_state == 0 and tmp_token == 'if':
             result = check_if(tokens,start=token_enum+1)
             if result[1]:
-                token_enum = result[2] + 1
+                token_enum = result[0] + 1
             else:
                 return result
         elif current_state == 0 and tmp_token == 'while':
             result = check_while(tokens,start=token_enum+1)
             if result[1]:
-                token_enum = result[2] + 1
+                token_enum = result[0] + 1
             else:
                 return result
         elif current_state >= 0:
@@ -284,8 +284,6 @@ def check_if(tokens,start):
                         return [statement_bool[0] , False , statement_bool[2]]
                 else:
                     end_statement_tmp = find_end(tokens, end_statement + 2, char=';')
-                    if end_statement_tmp == -1:
-                        return [start_statement + 1, False, -1000]
                     statement_bool = check_statement(tokens=tokens, start=end_statement + 2, end=end_statement_tmp)
                     if not statement_bool[1]:
                         return [statement_bool[0] , False , statement_bool[2]]
