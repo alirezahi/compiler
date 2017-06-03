@@ -65,7 +65,7 @@ statement_automata = [
     [-11, 10, -11, -11, -11, -11, 0, -11, -11, -11, -11, -11, 11, -11, -11, -11, -11],
     [10, -12, 13, -12, -12, -12, -12, -12, 14, -12, -12, -12, -12, -12, -12, -12, -12],
     [-13, -13, -13, -13, -13, -13, 0, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13],
-    [-14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, 14, -14, 15, 4, 10, -14],
+    [-14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, 14, -14, 15, 4, 11, -14],
     [10, 10, 13, -15, -15, -15, 0, -15, -15, -15, -15, -15, 15, -15, -15, -15, -15]  # 15
 ]
 
@@ -131,6 +131,7 @@ def check_statement(tokens,start=0,end=0):
     token_enum = start
     token_end = end
     while token_enum < token_end and current_state >= 0:
+        print(current_state)
         tmp_token = tokens[token_enum].strip()
         current_state = statement_automata[current_state][token_statement_num(tmp_token)]
         if current_state == 0 and tmp_token == 'if':
