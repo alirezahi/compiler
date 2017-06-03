@@ -55,21 +55,29 @@ def calculate():
     if tmp_operation == '-':
         first_num = get_value(variable_stack.pop())
         second_num = get_value(variable_stack.pop())
-        return [True,second_num - first_num]
+        if first_num is None or second_num is None :
+            return ['Variable is Undefined',False]
+        return [second_num - first_num, True]
     if tmp_operation == '+':
         first_num = get_value(variable_stack.pop())
         second_num = get_value(variable_stack.pop())
-        return [True,second_num + first_num]
+        if first_num is None or second_num is None :
+            return ['Variable is Undefined',False]
+        return [second_num + first_num, True]
     if tmp_operation == '*':
         first_num = get_value(variable_stack.pop())
         second_num = get_value(variable_stack.pop())
-        return [True,second_num * first_num]
+        if first_num is None or second_num is None :
+            return ['Variable is Undefined',False]
+        return [second_num * first_num, True]
     if tmp_operation == '/':
         first_num = get_value(variable_stack.pop())
         second_num = get_value(variable_stack.pop())
+        if first_num is None or second_num is None :
+            return ['Variable is Undefined',False]
         if first_num == 0:
-            return [False,'Division by Zero']
-        return [True,second_num / first_num]
+            return ['Division by Zero',False]
+        return [second_num / first_num,True]
 
 
 def find_end(tokens,start_token,char):
@@ -112,7 +120,48 @@ def check_expression(tokens,start=0,end=0):
     current_state = 0
     token_enum = start + 0
     while token_enum < end and current_state >= 0:
+        tmp_token = tokens[token_enum].strip()
+        tmp_state = current_state + 0
         current_state = expression_automata[current_state][token_expression_num(tokens[token_enum].strip())]
+        if current_state == 3:
+            if tmp_token in defined_var:
+                variable_stack.append(tmp_token)
+            else:
+                return [False, token_enum, 'Variable is not Defined']
+        if current_state == 4:
+            if len(operation_stack) > 0 and operation_priority[operation_stack[-1]] > operation_priority[tmp_token] and tmp_token is not '(':
+                while len(operation_stack) > 0 and operation_priority[operation_stack[-1]] > operation_priority[tmp_token] and tmp_token is not '(':
+                    cal_res = calculate()
+                    if cal_res[1]:
+                        variable_stack.append(cal_res[0])
+                    else:
+                        return cal_res+[token_enum]
+            elif len(operation_stack) > 0 and tmp_token != '(' and operation_stack[-1] != '(' and operation_priority[
+                operation_stack[-1]] == operation_priority[tmp_token]:
+                cal_res = calculate()
+                if cal_res[1]:
+                    variable_stack.append(cal_res[0])
+                else:
+                    return cal_res+[token_enum]
+            operation_stack.append(tmp_token)
+        if current_state == 2:
+            if tmp_token == ')':
+                while operation_stack[-1] is not '(':
+                    cal_res = calculate()
+                    if cal_res[1]:
+                        variable_stack.append(cal_res[0])
+                    else:
+                        return cal_res+[token_enum]
+                operation_stack.pop()
+            else:
+                variable_stack.append(tmp_token)
+        if tmp_state == 2 and current_state == 5:
+            while len(operation_stack) > 0:
+                cal_res = calculate()
+                if cal_res[1]:
+                    variable_stack.append(cal_res[0])
+                else:
+                    return cal_res+[token_enum]
         if current_state >= 0 :
             token_enum += 1
     if current_state < 0 :
@@ -157,14 +206,14 @@ def check_statement(tokens,start=0,end=0):
             if len(operation_stack) > 0 and operation_priority[operation_stack[-1]] > operation_priority[tmp_token] and tmp_token is not '(':
                 while len(operation_stack) > 0 and operation_priority[operation_stack[-1]] > operation_priority[tmp_token] and tmp_token is not '(':
                     cal_res = calculate()
-                    if cal_res[0]:
-                        variable_stack.append(cal_res[1])
+                    if cal_res[1]:
+                        variable_stack.append(cal_res[0])
                     else:
                         return cal_res
             elif len(operation_stack)>0 and tmp_token!='(' and operation_stack[-1]!='(' and operation_priority[operation_stack[-1]] == operation_priority[tmp_token]:
                 cal_res = calculate()
-                if cal_res[0]:
-                    variable_stack.append(cal_res[1])
+                if cal_res[1]:
+                    variable_stack.append(cal_res[0])
                 else:
                     return cal_res
             operation_stack.append(tmp_token)
@@ -172,8 +221,8 @@ def check_statement(tokens,start=0,end=0):
             if tmp_token == ')':
                 while operation_stack[-1] is not '(':
                     cal_res = calculate()
-                    if cal_res[0]:
-                        variable_stack.append(cal_res[1])
+                    if cal_res[1]:
+                        variable_stack.append(cal_res[0])
                     else:
                         return cal_res
                 operation_stack.pop()
@@ -182,8 +231,8 @@ def check_statement(tokens,start=0,end=0):
         if tmp_state == 11 and current_state == 0:
             while len(operation_stack)> 0:
                 cal_res = calculate()
-                if cal_res[0]:
-                    variable_stack.append(cal_res[1])
+                if cal_res[1]:
+                    variable_stack.append(cal_res[0])
                 else:
                     return cal_res
             defined_var[last_variable][1] = int(variable_stack.pop())
@@ -191,13 +240,13 @@ def check_statement(tokens,start=0,end=0):
         if current_state == 0 and tmp_token == 'if':
             result = check_if(tokens,start=token_enum+1)
             if result[1]:
-                token_enum = result[0] + 1
+                token_enum = result[2] + 1
             else:
-                return [result[0], False , result[2]]
+                return result
         elif current_state == 0 and tmp_token == 'while':
             result = check_while(tokens,start=token_enum+1)
             if result[1]:
-                token_enum = result[0] + 1
+                token_enum = result[2] + 1
             else:
                 return result
         elif current_state >= 0:
@@ -258,13 +307,11 @@ def check_while(tokens,start):
                 end_statement = find_end(tokens, start_statement + 1, char='}')
                 result = check_statement(tokens=tokens, start=start_statement + 2, end=end_statement)
                 if not result[1]:
-                    return [result[0],False , result[2]]
+                    return result
             else:
                 end_statement = find_end(tokens, start_statement + 1, char=';')
-                if end_statement == -1:
-                    return [-1000, False, start+1]
                 result = check_statement(tokens=tokens, start=start_statement + 1, end=end_statement)
                 if not result[1]:
-                    return [result[0], False , result[2]]
+                    return result
             return [end_statement , True]
     return -1
