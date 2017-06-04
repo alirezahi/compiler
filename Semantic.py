@@ -13,10 +13,17 @@ defined_var = dict()
 def get_value(var):
     try:
         res = int(var)
-        return res
+        return [[],res,False]
     except:
-        return defined_var[var][1]
+        return defined_var[var]+[True]
 
+
+def is_var(var):
+    try:
+        res = int(var)
+        return False
+    except:
+        return True
 
 def calculate():
     tmp_operation = operation_stack.pop()
@@ -25,27 +32,81 @@ def calculate():
         second_num = get_value(variable_stack.pop())
         if first_num is None or second_num is None :
             return ['Variable is Undefined',False]
-        return [second_num - first_num, True]
+        if first_num[2] == True :
+            if first_num[0] == 'int':
+                if second_num[2] == True :
+                    if second_num[0] == 'int':
+                        return [second_num[1] - first_num[1], True]
+                    return [second_num[:-1], False]
+                return [second_num[1] - first_num[1], True]
+            return [first_num[:-1],False]
+        if second_num[2] == True:
+            if second_num[0] == 'int':
+                return [second_num[1] - first_num[1], True]
+            return [second_num[:-1], False]
+        return [second_num[1] - first_num[1], True]
     if tmp_operation in ['+', '+=']:
         first_num = get_value(variable_stack.pop())
         second_num = get_value(variable_stack.pop())
         if first_num is None or second_num is None :
             return ['Variable is Undefined',False]
-        return [second_num + first_num, True]
+        if first_num[2] == True:
+            if first_num[0] == 'int':
+                if second_num[2] == True:
+                    if second_num[0] == 'int':
+                        return [second_num[1] + first_num[1], True]
+                    return [second_num[:-1], False]
+                return [second_num[1] + first_num[1], True]
+            return [first_num[:-1], False]
+        if second_num[2] == True:
+            if second_num[0] == 'int':
+                return [second_num[1] + first_num[1], True]
+            return [second_num[:-1], False]
+        return [second_num[1] + first_num[1], True]
     if tmp_operation in ['*', '*=']:
         first_num = get_value(variable_stack.pop())
         second_num = get_value(variable_stack.pop())
         if first_num is None or second_num is None :
             return ['Variable is Undefined',False]
-        return [second_num * first_num, True]
+        if first_num[2] == True:
+            if first_num[0] == 'int':
+                if second_num[2] == True:
+                    if second_num[0] == 'int':
+                        return [second_num[1] * first_num[1], True]
+                    return [second_num[:-1], False]
+                return [second_num[1] * first_num[1], True]
+            return [first_num[:-1], False]
+        if second_num[2] == True:
+            if second_num[0] == 'int':
+                return [second_num[1] * first_num[1], True]
+            return [second_num[:-1], False]
+        return [second_num[1] * first_num[1], True]
     if tmp_operation in ['/', '/=']:
         first_num = get_value(variable_stack.pop())
         second_num = get_value(variable_stack.pop())
         if first_num is None or second_num is None :
             return ['Variable is Undefined',False]
-        if first_num == 0:
-            return ['Division by Zero',False]
-        return [second_num / first_num,True]
+        if first_num[2] == True:
+            if first_num[0] == 'int':
+                if second_num[2] == True:
+                    if second_num[0] == 'int':
+                        if first_num[1] == 0:
+                            return ['Division by Zero', False]
+                        return [second_num[1] / first_num[1], True]
+                    return [second_num[:-1], False]
+                if first_num[1] == 0:
+                    return ['Division by Zero', False]
+                return [second_num[1] / first_num[1], True]
+            return [first_num[:-1], False]
+        if second_num[2] == True:
+            if second_num[0] == 'int':
+                if first_num[1] == 0:
+                    return ['Division by Zero', False]
+                return [second_num[1] / first_num[1], True]
+            return [second_num[:-1], False]
+        if first_num[1] == 0:
+            return ['Division by Zero', False]
+        return [second_num[1] / first_num[1], True]
 
 
 def find_end(tokens,start_token,char):
