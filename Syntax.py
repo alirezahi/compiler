@@ -35,42 +35,41 @@
 from Token import token_expression_num , token_statement_num
 
 expression_automata = [
-    [0, -1, -1, -1, 0, -1, 1, 10, 3, 2, -1],
+    [0, -1, -1, -1, 0, -1, 1, 10, 3, 2, -1],  # 0
     [-2, 0, -2, -2, -2, 1, -2, -2, -2, -2, -2],
     [-3, -3, 5, 4, -3, 2, -3, -3, -3, -3, -3],
     [-4, 0, 5, 4, -4, 3, -4, -4, -4, -4, -4],
     [-5, -5, -5, -5, 4, -5, -5, -5, 2, 2, -5],
-    [5, -6, -6, -6, 5, -6, 8, -6, 7, 6, -1],
+    [5, -6, -6, -6, 5, -6, 8, 12, 7, 6, -1],  # 5
     [-7, 0, -7, 9, -7, 6, -7, -7, -7, -7, -7],
     [-8, 0, -8, 9, -4, 7, -8, -8, -8, -8, -8],
     [-9, 0, -9, -9, -9, 8, -9, -9, -9, -9, -9],
     [-10, -10, -10, -10, 9, -10, -10, -10, 6, 6, -10],
-    [-12, -12, 11, -12, -12, 10, -12, -12, -12, -12, -12],
+    [-12, -12, 11, -12, -12, 10, -12, -12, -12, -12, -12],  # 10
     [-13, -13, -13, -13, -13, -13, -13, 12, 12, -13, -13],
     [-14, 0, -14, -14, -14, 12, -14, -14, -14, -14, -14]
 ]
 
 statement_automata = [
-    [-1, -1, -1, 5, 8, 1, 0, -1, -1, 0, 0, -1, -1, 12, -1, -1, -1],  # 0
-    [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 2, -1, -1, -1],
-    [-2, -2, -2, -2, -2, -2, 0, 1, 3, -2, -2, -2, -2, -2, -2, -2, -2],
-    [-3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, 3, -3, 4, 4, -3, -3],
-    [-4, -4, -4, -4, -4, -4, 0, -4, -4, -4, -4, -4, 4, 6, -4, -4, -4],
-    [-5, -5, -5, -5, -5, -5, -5, -5, -5, -5, -5, -5, -5, 6, -5, -5, -5],  # 5
-    [-6, -6, -6, -6, -6, -6, -6, 5, 7, -6, -6, -6, -6, -6, -6, -6, -6],
-    [-7, -7, -7, -7, -7, -7, 0, -7, -7, -7, -7, -7, -7, -7, -7, -7, -7],
-    [-8, -8, -8, -8, -8, -8, -8, -8, -8, -8, -8, -8, -8, 9, -8, -8, -8],
-    [-9, -9, -9, -9, -9, -9, 0, 8, 10, -9, -9, -9, -9, -9, -9, -9, -9],
-    [-10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, 10, -10, 11, -10, 11, -10],  # 10
-    [-11, 10, -11, -11, -11, -11, 0, -11, -11, -11, -11, -11, 11, -11, -11, -11, -11],
-    [10, -12, 13, -12, -12, -12, -12, -12, 14, -12, -12, -12, -12, -12, -12, -12, -12],
-    [-13, -13, -13, -13, -13, -13, 0, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13],
-    [-14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, 14, -14, 15, 4, 11, -14],
-    [10, 10, 13, -15, -15, -15, 0, -15, -15, -15, -15, -15, 15, -15, -15, -15, -15]  # 15
+    [-1, -1, -1, 5, 8, 1, 0, -1, -1, 0, 0, -1, -1, 12, -1, -1, -1, -1],  # 0
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 2, -1, -1, -1, -1],
+    [-2, -2, -2, -2, -2, -2, 0, 1, 3, -2, -2, -2, -2, -2, -2, -2, -2, -2],
+    [-3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, 3, -3, 4, 4, -3, -3, -3],
+    [-4, -4, -4, -4, -4, -4, 0, -4, -4, -4, -4, -4, 4, 6, -4, -4, -4, -4],
+    [-5, -5, -5, -5, -5, -5, -5, -5, -5, -5, -5, -5, -5, 6, -5, -5, -5, -5],  # 5
+    [-6, -6, -6, -6, -6, -6, 0, 5, 7, -6, -6, -6, -6, -6, -6, -6, -6, -6],
+    [-7, -7, -7, -7, -7, -7, 0, -7, -7, -7, -7, -7, -7, -7, -7, -7, -7, -7],
+    [-8, -8, -8, -8, -8, -8, -8, -8, -8, -8, -8, -8, -8, 9, -8, -8, -8, -8],
+    [-9, -9, -9, -9, -9, -9, 0, 8, 10, -9, -9, -9, -9, -9, -9, -9, -9, -9],
+    [-10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, 10, -10, 11, -10, 11, -10, -10],  # 10
+    [-11, 10, -11, -11, -11, -11, 0, -11, -11, -11, -11, -11, 11, -11, -11, -11, -11, -11],
+    [10, -12, 13, -12, -12, -12, -12, -12, 14, -12, -12, -12, -12, -12, -12, -12, -12, -12],
+    [-13, -13, -13, -13, -13, -13, 0, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13],
+    [-14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, 14, -14, 15, 4, 15, -14, -14],
+    [10, 10, 13, -15, -15, -15, 0, -15, -15, -15, -15, -15, 15, -15, -15, -15, -15, 7]  # 15
 ]
 
 tokens_lines = []
-
 
 
 def get_line(token_lines,token_number):
@@ -79,6 +78,7 @@ def get_line(token_lines,token_number):
             final_result = index+1
             break
     return final_result
+
 
 def find_end(tokens,start_token,char):
     token_enum = start_token + 0
@@ -115,6 +115,7 @@ def find_end(tokens,start_token,char):
                 token_enum += 1
             return -1
 
+
 def check_expression(tokens,start=0,end=0):
     current_state = 0
     token_enum = start + 0
@@ -126,13 +127,36 @@ def check_expression(tokens,start=0,end=0):
         return [current_state,False,token_enum]
     return [current_state,True,token_enum]
 
+
 def check_statement(tokens,start=0,end=0):
     current_state = 0
     token_enum = start
     token_end = end
     while token_enum < token_end and current_state >= 0:
         tmp_token = tokens[token_enum].strip()
+        tmp_state = current_state
         current_state = statement_automata[current_state][token_statement_num(tmp_token)]
+        if current_state == 14 and tmp_state == 12:
+            start_tmp = token_enum+1
+        if current_state == 7:
+            if tmp_state == 15:
+                exp_end = find_end(tokens,start_tmp,';')
+                if exp_end == -1:
+                    return [-1000, False, start_tmp+1]
+                result = check_expression(tokens,start=start_tmp,end=exp_end-1)
+                if not result[1]:
+                    return result
+                current_state = 0
+                token_enum = exp_end-1
+            else:
+                exp_end = find_end(tokens, token_enum+1, ';')
+                if exp_end == -1:
+                    return [-1000, False, token_enum + 1]
+                result = check_expression(tokens, start=token_enum+1, end=exp_end-1)
+                if not result[1]:
+                    return result
+                current_state = 0
+                token_enum = exp_end-1
         if current_state == 0 and tmp_token == 'if':
             result = check_if(tokens,start=token_enum+1)
             if result[1]:
@@ -150,6 +174,7 @@ def check_statement(tokens,start=0,end=0):
     if current_state != 0:
         return [current_state,False , token_enum]
     return [current_state , True , token_enum]
+
 
 def check_if(tokens,start):
     token_enum = start + 0
@@ -189,6 +214,7 @@ def check_if(tokens,start):
                 return [end_statement , True]
     return -1
 
+
 def check_while(tokens,start):
     token_enum = start + 0
     if tokens[token_enum] == '(':
@@ -210,4 +236,4 @@ def check_while(tokens,start):
                 if not result[1]:
                     return [result[0], False , result[2]]
             return [end_statement , True]
-    return -1
+    return [-1001, False, start]
