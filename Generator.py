@@ -1,5 +1,6 @@
 from StateMachine import *
 from Token import *
+from Binary import *
 
 symbol_table = []
 identifier_table = []
@@ -8,6 +9,54 @@ regmem_table = []
 number_table = []
 operator_table = []
 punctutation_table = []
+
+keywords=['true','false','int','bool','char','else','while','if']
+operators=['=', '+', '-', '/', '*', '||', '&&', '++', '--', '==', '!=', '>', '<', '>=', '<=', '!', '+=', '-=', '*=', '/=', '%=']
+punctutations=['(', ')', '{', '}', ',', ';']
+
+
+def set_to_symbol_table(token):
+    if token in keywords:
+        x = -1
+        for z in range(len(keyword_table)):
+            if token == keyword_table[z]:
+                x = z
+                symbol_table.append(['keyword', z])
+        if x == -1:
+            keyword_table.append(token)
+            symbol_table.append(['keyword', len(keyword_table)-1])
+    elif token in operators:
+        x = -1
+        for z in range(len(operator_table)):
+            if token == operator_table[z]:
+                x = z
+                symbol_table.append(['operator', z])
+        if x == -1:
+            operator_table.append(token)
+            symbol_table.append(['operator', len(operator_table) - 1])
+    elif token in punctutations:
+        x = -1
+        for z in range(len(punctutation_table)):
+            if token == punctutation_table[z]:
+                x = z
+                symbol_table.append(['punctutation', z])
+        if x == -1:
+            punctutation_table.append(token)
+            symbol_table.append(['punctutation', len(punctutation_table) - 1])
+    else:
+        try:
+            int(token)
+            number_table.append(['s'+str(len(number_table)),token,None,None])
+            symbol_table.append(['number',len(number_table) -1])
+        except:
+            x = -1
+            for z in range(len(identifier_table)):
+                if token == identifier_table[z][0]:
+                    x = z
+                    symbol_table.append(['identifier', z])
+            if x == -1:
+                identifier_table.append([token,None,None])
+                symbol_table.append(['identifier', len(identifier_table) - 1])
 
 
 def find_end(tokens,start_token,char):
@@ -60,6 +109,8 @@ def check_statement(tokens,start=0,end=0):
         tmp_token = tokens[token_enum].strip()
         tmp_state = current_state
         current_state = statement_automata[current_state][token_statement_num(tmp_token)]
+        if current_state in [2, 6, 9, 12]:
+            last_var = tmp_token
         if current_state == 14 and tmp_state == 12:
             start_tmp = token_enum+1
         if current_state == 7:
@@ -79,47 +130,46 @@ def check_statement(tokens,start=0,end=0):
         elif current_state == 0 and tmp_token == 'while':
             result = check_while(tokens,start=token_enum+1)
             token_enum = result[0] + 1
-        if current_state == 9 :
-            identifier_table.append([tokens[token_enum],None,None])
         token_enum += 1
 
 
 def check_if(tokens,start):
     token_enum = start + 0
-    if tokens[token_enum] == '(':
-        start_statement = find_end(tokens, token_enum, char=')')
-        check_expression(tokens, start=token_enum + 1, end=start_statement)
-        if tokens[start_statement + 1] == '{':
-            end_statement = find_end(tokens, start_statement + 1, char='}')
-            check_statement(tokens=tokens, start=start_statement + 2, end=end_statement)
+    start_statement = find_end(tokens, token_enum, char=')')
+    check_expression(tokens, start=token_enum + 1, end=start_statement)
+    if tokens[start_statement + 1] == '{':
+        end_statement = find_end(tokens, start_statement + 1, char='}')
+        check_statement(tokens=tokens, start=start_statement + 2, end=end_statement)
+    else:
+        end_statement = find_end(tokens, start_statement + 1, char=';')
+        check_statement(tokens=tokens, start=start_statement + 1, end=end_statement)
+    if len(tokens) > end_statement+1 and tokens[end_statement+1] == 'else':
+        if tokens[end_statement + 2] == '{':
+            end_statement_tmp = find_end(tokens, end_statement + 2, char='}')
+            check_statement(tokens=tokens, start=end_statement + 3, end=end_statement_tmp)
         else:
-            end_statement = find_end(tokens, start_statement + 1, char=';')
-            check_statement(tokens=tokens, start=start_statement + 1, end=end_statement)
-        if len(tokens) > end_statement+1 and tokens[end_statement+1] == 'else':
-            if tokens[end_statement + 2] == '{':
-                end_statement_tmp = find_end(tokens, end_statement + 2, char='}')
-                check_statement(tokens=tokens, start=end_statement + 3, end=end_statement_tmp)
-            else:
-                end_statement_tmp = find_end(tokens, end_statement + 2, char=';')
-                check_statement(tokens=tokens, start=end_statement + 2, end=end_statement_tmp)
-            return [end_statement_tmp , True]
-        else:
-            return [end_statement , True]
-    return -1
+            end_statement_tmp = find_end(tokens, end_statement + 2, char=';')
+            check_statement(tokens=tokens, start=end_statement + 2, end=end_statement_tmp)
+        return [end_statement_tmp , True]
+    else:
+        return [end_statement , True]
 
 
 def check_while(tokens,start):
     token_enum = start + 0
-    if tokens[token_enum] == '(':
-        start_statement = find_end(tokens, token_enum, char=')')
-        check_expression(tokens, start=token_enum + 1, end=start_statement)
-        if tokens[start_statement+1] == '{':
-            end_statement = find_end(tokens, start_statement + 1, char='}')
-            check_statement(tokens=tokens, start=start_statement + 2, end=end_statement)
-        else:
-            end_statement = find_end(tokens, start_statement + 1, char=';')
-            check_statement(tokens=tokens, start=start_statement + 1, end=end_statement)
-        return [end_statement , True]
+    start_statement = find_end(tokens, token_enum, char=')')
+    check_expression(tokens, start=token_enum + 1, end=start_statement)
+    if tokens[start_statement+1] == '{':
+        end_statement = find_end(tokens, start_statement + 1, char='}')
+        check_statement(tokens=tokens, start=start_statement + 2, end=end_statement)
+    else:
+        end_statement = find_end(tokens, start_statement + 1, char=';')
+        check_statement(tokens=tokens, start=start_statement + 1, end=end_statement)
+    return [end_statement , True]
 
 def generate_binary_code(tokens):
+    for token in tokens:
+        set_to_symbol_table(token)
     check_statement(tokens,end=len(tokens))
+    print(identifier_table)
+    print(punctutation_table)
