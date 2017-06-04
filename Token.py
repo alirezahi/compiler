@@ -15,7 +15,9 @@ def isCharacter(token):
         return True
 
 def token_statement_num(token):
-    if token in assignment_operators[1:]:
+    if token in relational_operators+logical_operators:
+        return 17
+    elif token in assignment_operators[1:]:
         return 0
     elif token in arithmetic_operators[:-2]:
         return 1
