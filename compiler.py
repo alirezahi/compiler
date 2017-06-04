@@ -4,6 +4,8 @@ from Syntax import *
 
 from Semantic import sem_check
 
+from Generator import generate_binary_code
+
 tokens_lines = []
 
 with open('test.txt','r') as file:
@@ -23,6 +25,7 @@ if parenthes_brace_bool:
         if result[1]:
             print('Successful')
             print(sem_check(tokens,start=0,end=tokens_number))
+            generate_binary_code(tokens)
         else:
             print('Line '+ str(get_line(tokens_lines,result[2])) +' : Error ')
 else:
