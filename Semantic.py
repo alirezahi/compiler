@@ -1,6 +1,6 @@
 from Token import *
 
-from Syntax import statement_automata, expression_automata
+from StateMachine import *
 
 operation_priority = {'(': 1, '+': 2, '+=': 2, '-': 2, '-=': 2, '*': 3, '*=': 3, '/': 3, '/=': 3}
 
@@ -157,7 +157,7 @@ def check_expression(tokens,start=0,end=0):
                 variable_stack.append(tmp_token)
             else:
                 return ['Variable is not Defined',False,token_enum]
-        if current_state == 4 or current_state == 9:
+        if current_state == 4 or current_state == 7:
             if len(operation_stack) > 0 and operation_priority[operation_stack[-1]] > operation_priority[tmp_token] and tmp_token is not '(':
                 while len(operation_stack) > 0 and operation_priority[operation_stack[-1]] > operation_priority[tmp_token] and tmp_token is not '(':
                     cal_res = calculate()
