@@ -4,15 +4,18 @@ relational_operators = ['==', '!=', '>', '<', '>=', '<=']
 arithmetic_operators = ['+', '-', '*', '/', '++', '--']
 boolean = ['true','false']
 
+
 def isVariable(token):
     result = token[0].isalpha()
     for i in token[1:]:
         result = result and (i.isalpha() or i.isdigit())
     return result
 
+
 def isCharacter(token):
     if len(token) == 3 and token[0] == '\'' and token[2] == '\'' and token[1].isalpha():
         return True
+
 
 def token_statement_num(token):
     if token in relational_operators+logical_operators:
