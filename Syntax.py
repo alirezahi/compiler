@@ -178,7 +178,7 @@ def check_if(tokens,start):
                 return [end_statement_tmp , True]
             else:
                 return [end_statement , True]
-    return -1
+    return [-2000, False, token_enum]
 
 
 def check_while(tokens,start):
@@ -202,4 +202,4 @@ def check_while(tokens,start):
                 if not result[1]:
                     return [result[0], False , result[2]]
             return [end_statement , True]
-    return [-1001, False, start]
+    return [-2000, False, token_enum]
