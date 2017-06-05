@@ -27,51 +27,51 @@ def clr_wp():
 
 
 def move_register(Rd, Rs):
-    return '0001'+str(Rd)+str(Rs)
+    return '0001'+str(Rd)+str(Rs)+'00000000'
 
 
 def load_address(Rd, Rs):
-    return '0010'+str(Rd)+str(Rs)
+    return '0010'+str(Rd)+str(Rs)+'00000000'
 
 
 def store_address(Rd, Rs):
-    return '0011'+str(Rd)+str(Rs)
+    return '0011'+str(Rd)+str(Rs)+'00000000'
 
 
 def and_registers(Rd, Rs):
-    return '0110'+str(Rd)+str(Rs)
+    return '0110'+str(Rd)+str(Rs)+'00000000'
 
 
 def or_registers(Rd, Rs):
-    return '0111'+str(Rd)+str(Rs)
+    return '0111'+str(Rd)+str(Rs)+'00000000'
 
 
 def not_register(Rd, Rs):
-    return '1000'+str(Rd)+str(Rs)
+    return '1000'+str(Rd)+str(Rs)+'00000000'
 
 
 def shift_left(Rd, Rs):
-    return '1001'+str(Rd)+str(Rs)
+    return '1001'+str(Rd)+str(Rs)+'00000000'
 
 
 def shift_right(Rd, Rs):
-    return '1010'+str(Rd)+str(Rs)
+    return '1010'+str(Rd)+str(Rs)+'00000000'
 
 
 def add_registers(Rd, Rs):
-    return '1011'+str(Rd)+str(Rs)
+    return '1011'+str(Rd)+str(Rs)+'00000000'
 
 
 def subtract_registers(Rd, Rs):
-    return '1100'+str(Rd)+str(Rs)
+    return '1100'+str(Rd)+str(Rs)+'00000000'
 
 
 def multiply_registers(Rd, Rs):
-    return '1101'+str(Rd)+str(Rs)
+    return '1101'+str(Rd)+str(Rs)+'00000000'
 
 
 def compare_registers(Rd, Rs):
-    return '1110'+str(Rd)+str(Rs)
+    return '1110'+str(Rd)+str(Rs)+'00000000'
 
 
 def move_immd_low(Rd, I):
