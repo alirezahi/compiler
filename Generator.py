@@ -1,6 +1,7 @@
 from StateMachine import *
 from Token import *
 from Binary import *
+from SayehInstruction import *
 
 symbol_table = []
 identifier_table = []
@@ -13,6 +14,71 @@ punctutation_table = []
 keywords=['true','false','int','bool','char','else','while','if']
 operators=['=', '+', '-', '/', '*', '||', '&&', '++', '--', '==', '!=', '>', '<', '>=', '<=', '!', '+=', '-=', '*=', '/=', '%=']
 punctutations=['(', ')', '{', '}', ',', ';']
+
+current_wp = '000000'
+last_available_reg = 0
+last_available_mem = 1023
+last_available_number = 0
+
+operation_stack = []
+operand_stack = []
+
+Registers_situation = [0,0,0,0]
+
+
+def get_next_wp():
+    global current_wp, Registers_situation
+    Registers_situation = Registers_situation[2:]+[0,0]
+    current_wp = decimal_to_binary(binary_to_decimal(current_wp) + 2)
+
+
+def find_empty_register(number_of_desired_registers):
+    if number_of_desired_registers == 1:
+        for value in range(len(Registers_situation)):
+            if Registers_situation[value] == 0:
+                return [True, value]
+        return [False]
+    elif number_of_desired_registers == 2:
+        result = []
+        for value in range(len(Registers_situation)):
+            if Registers_situation[value] == 0:
+                result += [value]
+            if len(result) == 2:
+                return [True] + result
+        return [False]
+    return [False]
+
+
+def calculate():
+    return 0
+
+
+def registers_handle():
+    var = operand_stack[-2:]
+    needed = 0
+    for variable in var:
+        if variable[0][0] == 'identifier' or (variable[0][1] is not 'reg'):
+            needed += 1
+    if needed == 0:
+        return
+    elif needed == 1:
+        if find_empty_register(1)[0]:
+            return
+        return
+    elif needed == 2:
+        if find_empty_register(2)[0]:
+            return
+        return
+
+
+def register_file_memory():
+    return 0
+
+
+def find_var(searching_identifier):
+    for variable in identifier_table:
+        if variable[0] == searching_identifier:
+            return variable
 
 
 def set_to_symbol_table(token):
@@ -92,6 +158,42 @@ def find_end(tokens,start_token,char):
                 token_enum += 1
 
 
+def store_variable(variable):
+    cal_result = operand_stack.pop()
+    if cal_result[0] == 'identifier':
+        reg_res = find_empty_register(2)
+        if not reg_res[0]:
+            get_next_wp()
+            reg_res = find_empty_register(2)
+        print(move_immd_low(decimal_to_binary(reg_res[1], 2), decimal_to_binary(dec_num=cal_result[1][-1], low=True)))
+        print(move_immd_high(decimal_to_binary(reg_res[1], 2), decimal_to_binary(dec_num=cal_result[1][-1], high=True)))
+        print(load_address(decimal_to_binary(reg_res[2], 2), decimal_to_binary(reg_res[1], 2)))
+        print(move_immd_low(decimal_to_binary(reg_res[1], 2), decimal_to_binary(dec_num=find_var(variable)[-1], low=True)))
+        print(move_immd_high(decimal_to_binary(reg_res[1], 2), decimal_to_binary(dec_num=find_var(variable)[-1], high=True)))
+        print(store_address(decimal_to_binary(reg_res[1], 2), decimal_to_binary(reg_res[2], 2)))
+    else:
+        if cal_result[1] == 'reg':
+            reg_res = find_empty_register(1)
+            if not reg_res[0]:
+                get_next_wp()
+                reg_res = find_empty_register(1)
+                #maybe we gonna need something here
+            print(move_immd_low(decimal_to_binary(reg_res[1], 2), decimal_to_binary(dec_num=find_var(variable)[-1], low=True)))
+            print(move_immd_high(decimal_to_binary(reg_res[1], 2), decimal_to_binary(dec_num=find_var(variable)[-1], high=True)))
+            print(store_address(decimal_to_binary(reg_res[1], 2), decimal_to_binary(cal_result[2], 2)))
+        elif cal_result[1] == 'None':
+            reg_res = find_empty_register(2)
+            if not reg_res[0]:
+                get_next_wp()
+                reg_res = find_empty_register(2)
+            print(move_immd_low(decimal_to_binary(reg_res[1], 2), decimal_to_binary(dec_num=find_var(variable)[-1], low=True)))
+            print(move_immd_high(decimal_to_binary(reg_res[1], 2), decimal_to_binary(dec_num=find_var(variable)[-1], high=True)))
+            print(move_immd_low(decimal_to_binary(reg_res[2], 2), decimal_to_binary(dec_num=cal_result[-2], low=True)))
+            print(move_immd_high(decimal_to_binary(reg_res[2], 2), decimal_to_binary(dec_num=cal_result[-2], high=True)))
+            print(store_address(decimal_to_binary(reg_res[1], 2), decimal_to_binary(reg_res[2], 2)))
+    return
+
+
 def check_expression(tokens,start=0,end=0):
     current_state = 0
     token_enum = start + 0
@@ -102,6 +204,7 @@ def check_expression(tokens,start=0,end=0):
 
 
 def check_statement(tokens,start=0,end=0):
+    global last_available_mem , last_available_number
     current_state = 0
     token_enum = start
     token_end = end
@@ -111,8 +214,13 @@ def check_statement(tokens,start=0,end=0):
         current_state = statement_automata[current_state][token_statement_num(tmp_token)]
         if current_state in [2, 6, 9, 12]:
             last_var = tmp_token
+            variable = find_var(tmp_token)
+            variable[2] = last_available_mem
+            last_available_mem -= 1
         if current_state == 14 and tmp_state == 12:
             start_tmp = token_enum+1
+
+#       handling bool defined scope
         if current_state == 7:
             if tmp_state == 15:
                 exp_end = find_end(tokens,start_tmp,';')
@@ -124,12 +232,32 @@ def check_statement(tokens,start=0,end=0):
                 check_expression(tokens, start=token_enum+1, end=exp_end-1)
                 current_state = 0
                 token_enum = exp_end-1
+
+#       handling_if_scope
         if current_state == 0 and tmp_token == 'if':
             result = check_if(tokens,start=token_enum+1)
             token_enum = result[0] + 1
+
+#       handling_while_scope
         elif current_state == 0 and tmp_token == 'while':
             result = check_while(tokens,start=token_enum+1)
             token_enum = result[0] + 1
+
+#       operation computing
+        if current_state == 11:
+            if tmp_token == ')':
+                while operation_stack[-1] is not '(':
+                    print()
+            else:
+                if isVariable(tmp_token):
+                    operand_stack.append(['identifier',find_var(tmp_token)])
+                else:
+                    operand_stack.append(['not_identifier', 'None', '', tmp_token, last_available_number])
+                    last_available_number += 1
+        if current_state == 0 and tmp_state == 11:
+            while len(operation_stack)>0:
+                print()
+            store_variable(last_var)
         token_enum += 1
 
 
@@ -171,5 +299,3 @@ def generate_binary_code(tokens):
     for token in tokens:
         set_to_symbol_table(token)
     check_statement(tokens,end=len(tokens))
-    print(identifier_table)
-    print(punctutation_table)
