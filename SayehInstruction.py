@@ -69,6 +69,9 @@ def subtract_registers(Rd, Rs):
 def multiply_registers(Rd, Rs):
     return '1101'+str(Rd)+str(Rs)+'00000000'
 
+def division_registers(Rd, Rs):
+    #It is not complete
+    return '1101' + str(Rd) + str(Rs) + '00000000'
 
 def compare_registers(Rd, Rs):
     return '1110'+str(Rd)+str(Rs)+'00000000'
