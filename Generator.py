@@ -76,7 +76,7 @@ def calculate():
     second_var = operand_stack.pop()
     reg_add = [0,0]
     for tmp_var in [first_var,second_var]:
-        if tmp_var == 'identifier':
+        if tmp_var[0] == 'identifier':
             reg_res = find_empty_register(2)
             if not reg_res[0]:
                 get_next_wp()
@@ -123,7 +123,16 @@ def calculate():
     operation = operation_stack.pop()
     if operation == '+':
         print(add_registers(decimal_to_binary(min(reg_add[0],reg_add[1]), 2),decimal_to_binary(max(reg_add[0],reg_add[1]), 2)))
-        operand_stack.append(['not_identifier','reg',min(reg_add[0],reg_add[1])])
+        operand_stack.append(['not_identifier', 'reg',min(reg_add[0],reg_add[1])])
+    if operation == '-':
+        print(subtract_registers(decimal_to_binary(min(reg_add[0], reg_add[1]), 2), decimal_to_binary(max(reg_add[0], reg_add[1]), 2)))
+        operand_stack.append(['not_identifier', 'reg', min(reg_add[0], reg_add[1])])
+    if operation == '*':
+        print(multiply_registers(decimal_to_binary(min(reg_add[0], reg_add[1]), 2), decimal_to_binary(max(reg_add[0], reg_add[1]), 2)))
+        operand_stack.append(['not_identifier', 'reg', min(reg_add[0], reg_add[1])])
+    if operation == '/':
+        print(division_registers(decimal_to_binary(min(reg_add[0], reg_add[1]), 2), decimal_to_binary(max(reg_add[0], reg_add[1]), 2)))
+        operand_stack.append(['not_identifier', 'reg', min(reg_add[0], reg_add[1])])
     return 0
 
 
@@ -199,7 +208,7 @@ def set_to_symbol_table(token):
                 symbol_table.append(['identifier', len(identifier_table) - 1])
 
 
-def find_end(tokens,start_token,char):
+def find_end(tokens, start_token, char):
     token_enum = start_token + 0
     if char == ')':
         parentheses_count = 0
@@ -322,7 +331,8 @@ def check_statement(tokens,start=0,end=0):
         if current_state == 11:
             if tmp_token == ')':
                 while operation_stack[-1] is not '(':
-                    print()
+                    calculate()
+                operation_stack.pop()
             else:
                 if isVariable(tmp_token):
                     operand_stack.append(['identifier',find_var(tmp_token)])
@@ -330,7 +340,7 @@ def check_statement(tokens,start=0,end=0):
                     operand_stack.append(['not_identifier', 'None', '', tmp_token])
                     last_available_number += 1
         if current_state == 0 and tmp_state == 11:
-            while len(operation_stack)>0:
+            while len(operation_stack) > 0:
                 calculate()
             store_variable(last_var)
         token_enum += 1
