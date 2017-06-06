@@ -2,6 +2,7 @@ from StateMachine import *
 from Token import *
 from Binary import *
 from SayehInstruction import *
+from Semantic import operation_priority
 
 symbol_table = []
 identifier_table = []
@@ -9,11 +10,11 @@ keyword_table = []
 regmem_table = []
 number_table = []
 operator_table = []
-punctutation_table = []
+punctuation_table = []
 
 keywords=['true','false','int','bool','char','else','while','if']
 operators=['=', '+', '-', '/', '*', '||', '&&', '++', '--', '==', '!=', '>', '<', '>=', '<=', '!', '+=', '-=', '*=', '/=', '%=']
-punctutations=['(', ')', '{', '}', ',', ';']
+punctuations=['(', ')', '{', '}', ',', ';']
 
 current_wp = 0
 last_available_reg = 0
@@ -27,28 +28,28 @@ Registers_situation = [0, 0, 0, 0]
 
 
 def get_next_wp():
-    global current_wp, Registers_situation
+    global current_wp, Registers_situation, last_available_mem
     if current_wp == 60:
         for x in operand_stack[-4:]:
-            if x[0] is not 'identifier' and x[1] in [0,1,2,3]:
+            if x[0] is not 'identifier' and x[2] in [0,1,2,3]:
                 print(move_immd_low(decimal_to_binary(3, 2), decimal_to_binary(dec_num=last_available_mem, low=True)))
                 print(move_immd_high(decimal_to_binary(3, 2), decimal_to_binary(dec_num=last_available_mem, high=True)))
+                print(store_address(decimal_to_binary(3, 2), decimal_to_binary(x[2], 2)))
                 x[1] = 'mem'
                 x[2] = last_available_mem
                 last_available_mem -= 1
-                print(store_address(decimal_to_binary(3, 2), decimal_to_binary(x[1], 2)))
         Registers_situation = [0, 0, 0, 0]
         print(clr_wp())
         current_wp = 0
     else:
-        for x in operand_stack[-2:]:
-            if x[0] is not 'identifier' and x[1] in [0, 1, 2, 3]:
+        for x in operand_stack[-4:-1]:
+            if x[0] is not 'identifier' and x[2] in [0, 1, 2, 3]:
                 print(move_immd_low(decimal_to_binary(3, 2), decimal_to_binary(dec_num=last_available_mem, low=True)))
                 print(move_immd_high(decimal_to_binary(3, 2), decimal_to_binary(dec_num=last_available_mem, high=True)))
+                print(store_address(decimal_to_binary(3, bin_len=2), decimal_to_binary(x[2], bin_len=2)))
                 x[1] = 'mem'
                 x[2] = last_available_mem
                 last_available_mem -= 1
-                print(store_address(decimal_to_binary(3, 2), decimal_to_binary(x[1], 2)))
         Registers_situation = Registers_situation[2:]+[0, 0]
         print(add_win_pointer(decimal_to_binary(2, 8)))
         current_wp += 2
@@ -84,7 +85,6 @@ def calculate():
             print(move_immd_low(decimal_to_binary(reg_res[2], 2), decimal_to_binary(dec_num=tmp_var[1][-1], low=True)))
             print(move_immd_high(decimal_to_binary(reg_res[2], 2), decimal_to_binary(dec_num=tmp_var[1][-1], high=True)))
             print(load_address(decimal_to_binary(reg_res[1], 2), decimal_to_binary(reg_res[1], 2)))
-            Registers_situation[reg_res[1]] = 1
             if tmp_var == first_var:
                 reg_add[0] = reg_res[1]
             else:
@@ -103,7 +103,6 @@ def calculate():
                 print(move_immd_low(decimal_to_binary(reg_res[2], 2), decimal_to_binary(dec_num=tmp_var[2], low=True)))
                 print(move_immd_high(decimal_to_binary(reg_res[2], 2), decimal_to_binary(dec_num=tmp_var[2], high=True)))
                 print(load_address(decimal_to_binary(reg_res[1], 2), decimal_to_binary(reg_res[1], 2)))
-                Registers_situation[reg_res[1]] = 1
                 if tmp_var == first_var:
                     reg_add[0] = reg_res[1]
                 else:
@@ -115,11 +114,11 @@ def calculate():
                     reg_res = find_empty_register(2)
                 print(move_immd_low(decimal_to_binary(reg_res[1], 2),  decimal_to_binary(dec_num=tmp_var[-1], low=True)))
                 print(move_immd_high(decimal_to_binary(reg_res[1], 2), decimal_to_binary(dec_num=tmp_var[-1], high=True)))
-                Registers_situation[reg_res[1]] = 1
                 if tmp_var == first_var:
                     reg_add[0] = reg_res[1]
                 else:
                     reg_add[1] = reg_res[1]
+    Registers_situation[min(reg_add)] = 1
     operation = operation_stack.pop()
     if operation == '+':
         print(add_registers(decimal_to_binary(min(reg_add[0],reg_add[1]), 2),decimal_to_binary(max(reg_add[0],reg_add[1]), 2)))
@@ -183,15 +182,15 @@ def set_to_symbol_table(token):
         if x == -1:
             operator_table.append(token)
             symbol_table.append(['operator', len(operator_table) - 1])
-    elif token in punctutations:
+    elif token in punctuations:
         x = -1
-        for z in range(len(punctutation_table)):
-            if token == punctutation_table[z]:
+        for z in range(len(punctuation_table)):
+            if token == punctuation_table[z]:
                 x = z
                 symbol_table.append(['punctutation', z])
         if x == -1:
-            punctutation_table.append(token)
-            symbol_table.append(['punctutation', len(punctutation_table) - 1])
+            punctuation_table.append(token)
+            symbol_table.append(['punctutation', len(punctuation_table) - 1])
     else:
         try:
             int(token)
@@ -322,11 +321,14 @@ def check_statement(tokens,start=0,end=0):
 
 #       handling_while_scope
         elif current_state == 0 and tmp_token == 'while':
-            result = check_while(tokens,start=token_enum+1)
+            result = check_while(tokens, start=token_enum+1)
             token_enum = result[0] + 1
 
 #       operation computing
         if current_state == 10 and tmp_token is not '=':
+            if tmp_token is not '(':
+                while len(operation_stack) > 0 and operation_priority[tmp_token] <= operation_priority[operation_stack[-1]]:
+                    calculate()
             operation_stack.append(tmp_token)
         if current_state == 11:
             if tmp_token == ')':
