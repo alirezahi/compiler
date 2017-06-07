@@ -24,6 +24,11 @@ last_available_number = 0
 operation_stack = []
 operand_stack = []
 
+logical_operators_stack = []
+logical_operand_stack = []
+
+relational_operator = []
+
 Registers_situation = [0, 0, 0, 0]
 
 
@@ -76,7 +81,7 @@ def calculate():
     first_var = operand_stack.pop()
     second_var = operand_stack.pop()
     reg_add = [0,0]
-    for tmp_var in [first_var,second_var]:
+    for tmp_var in [first_var, second_var]:
         if tmp_var[0] == 'identifier':
             reg_res = find_empty_register(2)
             if not reg_res[0]:
