@@ -279,6 +279,14 @@ def calculate(relational_operation=False):
             print(jump_relative(decimal_to_binary(dec_num=3, bin_len=8)))
             print(move_immd_low(decimal_to_binary(min(reg_add), 2), decimal_to_binary(dec_num=1, low=True)))
             print(move_immd_high(decimal_to_binary(min(reg_add), 2), decimal_to_binary(dec_num=1, high=True)))
+        if operation == '!=':
+            print(compare_registers(decimal_to_binary(reg_add[0], 2), decimal_to_binary(reg_add[1], 2)))
+            print(branch_if_z(decimal_to_binary(dec_num=3, bin_len=8)))
+            print(move_immd_low(decimal_to_binary(min(reg_add), 2), decimal_to_binary(dec_num=1, low=True)))
+            print(move_immd_high(decimal_to_binary(min(reg_add), 2), decimal_to_binary(dec_num=1, high=True)))
+            print(jump_relative(decimal_to_binary(dec_num=3, bin_len=8)))
+            print(move_immd_low(decimal_to_binary(min(reg_add), 2), decimal_to_binary(dec_num=0, low=True)))
+            print(move_immd_high(decimal_to_binary(min(reg_add), 2), decimal_to_binary(dec_num=0, high=True)))
         logical_operand_stack.append(['not_identifier', 'reg', min(reg_add)])
     else:
         operation = operation_stack.pop()
