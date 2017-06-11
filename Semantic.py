@@ -2,7 +2,9 @@ from Token import *
 
 from StateMachine import *
 
-operation_priority = {'(': 1, '+': 2, '+=': 2, '-': 2, '-=': 2, '*': 3, '*=': 3, '/': 3, '/=': 3}
+operation_priority = {'!': 0, '&&': -1, '||': -2, '(': -3, '+': 2, '+=': 2, '-': 2, '-=': 2, '*': 3, '*=': 3, '/': 3, '/=': 3}
+main_operations = ['+', '+=', '-', '-=', '*', '*=', '/', '/=']
+rel_operations = ['<', '<=', '==', '>', '>=']
 
 operation_stack = []
 variable_stack = []
