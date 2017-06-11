@@ -527,10 +527,16 @@ def check_statement(tokens,start=0,end=0):
         if current_state in [2, 6, 9, 12]:
             last_var = tmp_token
             variable = find_var(tmp_token)
-            variable[2] = last_available_mem
-            last_available_mem -= 1
+            # if variable is not defined set a memory address to its table
+            if current_state is not 12:
+                variable[2] = last_available_mem
+                last_available_mem -= 1
         if current_state == 14 and tmp_state == 12:
             start_tmp = token_enum+1
+        # handling character setting variable situation
+        if current_state == 4:
+            operand_stack.append(['not_identifier', 'None', '', ord(list(tmp_token)[1])])
+            statement_res += store_variable(last_var)
 
 #       handling bool defined scope
         if current_state == 7:
@@ -559,11 +565,25 @@ def check_statement(tokens,start=0,end=0):
             statement_res += ass_res
 
 #       operation computing
+        if tmp_state == 15 and current_state in [0, 10]:
+            operand_stack.append(['identifier', find_var(not_known_var)])
+            statement_res += store_variable(last_var)
+        if current_state == 15 and tmp_state == 14 and isVariable(tmp_token):
+            not_known_var = tmp_token
         if current_state == 10 and tmp_token is not '=':
             if tmp_token is not '(':
                 while len(operation_stack) > 0 and operation_priority[tmp_token] <= operation_priority[operation_stack[-1]]:
                     statement_res += calculate()
             operation_stack.append(tmp_token)
+        if current_state == 13:
+            operand_stack.append(['identifier', find_var(last_var)])
+            operand_stack.append(['not_identifier', 'None', '', '1'])
+            if tmp_token == '++':
+                operation_stack.append('+')
+            else:
+                operation_stack.append('-')
+            statement_res += calculate()
+            statement_res += store_variable(last_var)
         if current_state == 11:
             if tmp_token == ')':
                 while operation_stack[-1] is not '(':
