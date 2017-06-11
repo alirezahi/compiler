@@ -35,6 +35,16 @@ relational_operator_stack = []
 Registers_situation = [0, 0, 0, 0]
 
 
+def set_address_division(address_number):
+    address_result = []
+    while address_number >= 255:
+        address_result.append(255)
+        address_number -= 255
+    if address_result is not 0:
+        address_result.append(address_number)
+    return address_result
+
+
 def get_next_wp():
     next_wp_result = []
     global current_wp, Registers_situation, last_available_mem
@@ -609,16 +619,41 @@ def check_if(tokens, start):
 
 
 def check_while(tokens, start):
+    while_res = []
     token_enum = start + 0
     start_statement = find_end(tokens, token_enum, char=')')
-    check_expression(tokens, start=token_enum + 1, end=start_statement)
+    while_res_tmp_exp = check_expression(tokens, start=token_enum + 1, end=start_statement)
+    while_res += while_res_tmp_exp
+    reg_res = find_empty_register(2)
+    if not reg_res[0]:
+        get_next_wp()
+        reg_res = find_empty_register(2)
     if tokens[start_statement+1] == '{':
         end_statement = find_end(tokens, start_statement + 1, char='}')
-        check_statement(tokens=tokens, start=start_statement + 2, end=end_statement)
+        while_res_tmp = check_statement(tokens=tokens, start=start_statement + 2, end=end_statement)
     else:
         end_statement = find_end(tokens, start_statement + 1, char=';')
-        check_statement(tokens=tokens, start=start_statement + 1, end=end_statement)
-    return [end_statement, True]
+        while_res_tmp = check_statement(tokens=tokens, start=start_statement + 1, end=end_statement)
+    len_statements_while = len(while_res_tmp)
+    while_res.append(move_immd_low(decimal_to_binary(reg_res[2], 2), decimal_to_binary(dec_num=memory_capacity, low=True)))
+    while_res.append(move_immd_high(decimal_to_binary(reg_res[2], 2), decimal_to_binary(dec_num=memory_capacity, high=True)))
+    while_res.append(load_address(decimal_to_binary(reg_res[1], 2), decimal_to_binary(reg_res[2], 2)))
+    while_res.append(compare_registers(decimal_to_binary(reg_res[1] - 1, 2), decimal_to_binary(reg_res[1], 2)))
+    while_res.append(branch_if_c(decimal_to_binary(dec_num=2, bin_len=8)))
+    while_res.append(jump_relative(decimal_to_binary(dec_num=len_statements_while + 1, bin_len=8)))
+    while_res += while_res_tmp
+    reg_res = find_empty_register(2)
+    if not reg_res[0]:
+        get_next_wp()
+        reg_res = find_empty_register(2)
+    address_moving = set_address_division(int((memory_capacity-len(while_res_tmp_exp)-len(while_res_tmp))))
+    while_res.append(save_pc(decimal_to_binary(reg_res[1], 2), decimal_to_binary(dec_num=address_moving[0], bin_len=8)))
+    for i in address_moving[1:-1]:
+        while_res.append(move_immd_low(decimal_to_binary(reg_res[2], 2), decimal_to_binary(dec_num=i, low=True)))
+        while_res.append(move_immd_high(decimal_to_binary(reg_res[2], 2), decimal_to_binary(dec_num=i, high=True)))
+        while_res.append(add_registers(decimal_to_binary(dec_num=reg_res[1],bin_len=2),decimal_to_binary(dec_num=reg_res[2],bin_len=2)))
+    while_res.append(jump_address(decimal_to_binary(reg_res[1], 2), decimal_to_binary(dec_num=address_moving[-1],bin_len=8)))
+    return [end_statement, True], while_res
 
 
 def generate_binary_code(tokens):
