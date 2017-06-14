@@ -44,21 +44,7 @@ def get_next_wp():
     next_wp_result = []
     global current_wp, Registers_situation, last_available_mem
     if current_wp == 60:
-        limit_size = -4
-        if len(operand_stack) < 4:
-            limit_size = -1 * len(operand_stack)
-        for x in operand_stack[limit_size:]:
-            if x[0] is not 'identifier' and x[2] in [0,1,2,3]:
-                next_wp_result.append(move_immd_low(decimal_to_binary(3, 2), decimal_to_binary(dec_num=last_available_mem, low=True)))
-                next_wp_result.append(move_immd_high(decimal_to_binary(3, 2), decimal_to_binary(dec_num=last_available_mem, high=True)))
-                next_wp_result.append(store_address(decimal_to_binary(3, 2), decimal_to_binary(x[2], 2)))
-                x[1] = 'mem'
-                x[2] = last_available_mem
-                last_available_mem -= 1
-        limit_size = -4
-        if len(operand_stack) < 4:
-            limit_size = -1 * len(operand_stack)
-        for x in operand_stack[limit_size:]:
+        for x in operand_stack:
             if x[0] is not 'identifier' and x[2] in [0, 1, 2, 3]:
                 next_wp_result.append(move_immd_low(decimal_to_binary(3, 2), decimal_to_binary(dec_num=last_available_mem, low=True)))
                 next_wp_result.append(move_immd_high(decimal_to_binary(3, 2), decimal_to_binary(dec_num=last_available_mem, high=True)))
@@ -70,10 +56,7 @@ def get_next_wp():
         next_wp_result.append(clr_wp())
         current_wp = 0
     else:
-        limit_size = -4
-        if len(operand_stack)<4:
-            limit_size = -1 * len(operand_stack)
-        for x in operand_stack[limit_size:]:
+        for x in operand_stack:
             if x[0] is not 'identifier' and x[2] in [0, 1]:
                 next_wp_result.append(move_immd_low(decimal_to_binary(3, 2), decimal_to_binary(dec_num=last_available_mem, low=True)))
                 next_wp_result.append(move_immd_high(decimal_to_binary(3, 2), decimal_to_binary(dec_num=last_available_mem, high=True)))
@@ -81,17 +64,8 @@ def get_next_wp():
                 x[1] = 'mem'
                 x[2] = last_available_mem
                 last_available_mem -= 1
-        limit_size = -4
-        if len(operand_stack) < 4:
-            limit_size = -1 * len(operand_stack)
-        for x in operand_stack[limit_size:]:
-            if x[0] is not 'identifier' and x[2] in [0, 1]:
-                next_wp_result.append(move_immd_low(decimal_to_binary(3, 2), decimal_to_binary(dec_num=last_available_mem, low=True)))
-                next_wp_result.append(move_immd_high(decimal_to_binary(3, 2), decimal_to_binary(dec_num=last_available_mem, high=True)))
-                next_wp_result.append(store_address(decimal_to_binary(3, bin_len=2), decimal_to_binary(x[2], bin_len=2)))
-                x[1] = 'mem'
-                x[2] = last_available_mem
-                last_available_mem -= 1
+            if x[0] is not 'identifier' and x[2] in [2, 3]:
+                x[2] -= 2
         Registers_situation = Registers_situation[2:]+[0, 0]
         next_wp_result.append(add_win_pointer(decimal_to_binary(2, 8)))
         current_wp += 2
@@ -118,12 +92,12 @@ def find_empty_register(number_of_desired_registers):
 def calculate(relational_operation=False):
     global operand_stack
     calculate_res = []
-    first_var = operand_stack.pop()
+    first_var = operand_stack[-1]
     looping_var = [first_var]
     reg_add = [0, 0]
     not_bool = False
     if operation_stack[-1] is not '!':
-        second_var = operand_stack.pop()
+        second_var = operand_stack[-2]
         looping_var.append(second_var)
     else:
         not_bool = True
@@ -132,6 +106,8 @@ def calculate(relational_operation=False):
             reg_res = find_empty_register(2)
             if not reg_res[0]:
                 calculate_res += get_next_wp()
+                if tmp_var == second_var:
+                    reg_add[0] -= 2
                 reg_res = find_empty_register(2)
             if operation_stack[-1] is '!':
                 reg_add[1] = reg_res[2]
@@ -152,6 +128,8 @@ def calculate(relational_operation=False):
                 reg_res = find_empty_register(1)
                 if not reg_res[0]:
                     calculate_res += get_next_wp()
+                    if tmp_var == second_var:
+                        reg_add[0] -= 2
                     reg_res = find_empty_register(1)
                 if operation_stack[-1] is '!':
                     reg_add[1] = reg_res[1]
@@ -159,6 +137,8 @@ def calculate(relational_operation=False):
                 reg_res = find_empty_register(2)
                 if not reg_res[0]:
                     calculate_res += get_next_wp()
+                    if tmp_var == second_var:
+                        reg_add[0] -= 2
                     reg_res = find_empty_register(2)
                 if operation_stack[-1] is '!':
                     reg_add[1] = reg_res[2]
@@ -174,16 +154,23 @@ def calculate(relational_operation=False):
                 reg_res = find_empty_register(2)
                 if not reg_res[0]:
                     calculate_res += get_next_wp()
+                    if tmp_var == second_var:
+                        reg_add[0] -= 2
                     reg_res = find_empty_register(2)
                 if operation_stack[-1] is '!':
                     reg_add[1] = reg_res[2]
                 calculate_res.append(move_immd_low(decimal_to_binary(reg_res[1], 2),  decimal_to_binary(dec_num=tmp_var[-1], low=True)))
                 calculate_res.append(move_immd_high(decimal_to_binary(reg_res[1], 2), decimal_to_binary(dec_num=tmp_var[-1], high=True)))
+                tmp_var[1] = 'reg'
+                tmp_var[2] = reg_res[1]
                 if tmp_var == first_var:
                     reg_add[0] = reg_res[1]
                 else:
                     reg_add[1] = reg_res[1]
                 Registers_situation[reg_res[1]] = 1
+    operand_stack.pop()
+    if operation_stack[-1] is not '!':
+        operand_stack.pop()
     Registers_situation[min(reg_add)] = 1
     Registers_situation[max(reg_add)] = 0
     if relational_operation:
@@ -230,6 +217,8 @@ def calculate(relational_operation=False):
             calculate_res.append(jump_relative(decimal_to_binary(dec_num=3, bin_len=8)))
             calculate_res.append(move_immd_low(decimal_to_binary(min(reg_add), 2), decimal_to_binary(dec_num=1, low=True)))
             calculate_res.append(move_immd_high(decimal_to_binary(min(reg_add), 2), decimal_to_binary(dec_num=1, high=True)))
+            r = Registers_situation +[]
+            calculate_res.append(r)
         if operation == '!=':
             calculate_res.append(compare_registers(decimal_to_binary(reg_add[0], 2), decimal_to_binary(reg_add[1], 2)))
             calculate_res.append(branch_if_z(decimal_to_binary(dec_num=3, bin_len=8)))
@@ -239,6 +228,7 @@ def calculate(relational_operation=False):
             calculate_res.append(move_immd_low(decimal_to_binary(min(reg_add), 2), decimal_to_binary(dec_num=0, low=True)))
             calculate_res.append(move_immd_high(decimal_to_binary(min(reg_add), 2), decimal_to_binary(dec_num=0, high=True)))
         operand_stack.append(['not_identifier', 'reg', min(reg_add)])
+
     else:
         operation = operation_stack.pop()
         if operation == '&&':
@@ -414,7 +404,7 @@ def store_variable(variable, store_boolean=False):
     return storing_result
 
 
-def check_expression(tokens,start=0,end=0):
+def check_expression(tokens, start=0, end=0):
     expression_res = []
     global last_available_mem
     current_state = 0
@@ -434,9 +424,9 @@ def check_expression(tokens,start=0,end=0):
                 while operation_stack[-1] != '(':
                     expression_res += calculate()
                 operation_stack.pop()
-            while len(operation_stack) > 0:
-                expression_res += calculate()
             expression_res += calculate(relational_operation=True)
+        if current_state == 8:
+            operation_stack.append(tmp_token)
         if current_state == 1:
             if tmp_token == 'true':
                 operand_stack.append(['not_identifier', 'None', '', '1'])
@@ -450,6 +440,11 @@ def check_expression(tokens,start=0,end=0):
                     expression_res += calculate()
         if current_state == 0 and tmp_state in [1, 3]:
             operation_stack.append(tmp_token)
+        if current_state == 9 and tmp_token is not ')':
+            operand_stack.append(['identifier', find_var(tmp_token)])
+            if token_enum == end -1 :
+                while len(operation_stack) > 0 and operation_stack[-1] in rel_operations:
+                    expression_res += calculate(relational_operation=True)
         if current_state == 3 and tmp_token is not ')':
             operand_stack.append(['identifier', find_var(tmp_token)])
         if current_state in [4, 7]:
@@ -521,7 +516,7 @@ def check_statement(tokens, start=0, end=0):
 
 #       handling bool defined scope
         if current_state == 7:
-            if tmp_state == 15:
+            if tmp_state in [14, 15]:
                 exp_end = find_end(tokens,start_tmp,';')
                 statement_res += check_expression(tokens,start=start_tmp,end=exp_end-1)
                 current_state = 0
@@ -584,10 +579,12 @@ def check_statement(tokens, start=0, end=0):
 
 
 def check_if(tokens, start):
+    global Registers_situation
     if_res = []
     token_enum = start + 0
     start_statement = find_end(tokens, token_enum, char=')')
     if_res += check_expression(tokens, start=token_enum + 1, end=start_statement)
+    tmp_r = Registers_situation + []
     if tokens[start_statement + 1] == '{':
         end_statement = find_end(tokens, start_statement + 1, char='}')
         if_res_tmp = check_statement(tokens=tokens, start=start_statement + 2, end=end_statement)
@@ -596,6 +593,7 @@ def check_if(tokens, start):
         if_res_tmp = check_statement(tokens=tokens, start=start_statement + 1, end=end_statement)
         end_statement -= 1
     len_statements_if = len(if_res_tmp)
+    Registers_situation = tmp_r
     if len(operand_stack) > 0:
         if operand_stack[-1][0] == 'identifier' and operand_stack[-1][1][1] is None:
             reg_res = find_empty_register(2)
@@ -645,16 +643,16 @@ def check_while(tokens, start):
     start_statement = find_end(tokens, token_enum, char=')')
     while_res_tmp_exp = check_expression(tokens, start=token_enum + 1, end=start_statement)
     while_res += while_res_tmp_exp
-    reg_res = find_empty_register(2)
-    if not reg_res[0]:
-        while_res += get_next_wp()
-        reg_res = find_empty_register(2)
     if tokens[start_statement+1] == '{':
         end_statement = find_end(tokens, start_statement + 1, char='}')
         while_res_tmp = check_statement(tokens=tokens, start=start_statement + 2, end=end_statement)
     else:
         end_statement = find_end(tokens, start_statement + 1, char=';')
         while_res_tmp = check_statement(tokens=tokens, start=start_statement + 1, end=end_statement)
+    reg_res = find_empty_register(2)
+    if not reg_res[0]:
+        while_res += get_next_wp()
+        reg_res = find_empty_register(2)
     len_statements_while = len(while_res_tmp)
     while_res.append(move_immd_low(decimal_to_binary(reg_res[2], 2), decimal_to_binary(dec_num=memory_capacity, low=True)))
     while_res.append(move_immd_high(decimal_to_binary(reg_res[2], 2), decimal_to_binary(dec_num=memory_capacity, high=True)))
