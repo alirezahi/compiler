@@ -2,7 +2,7 @@ assignment_operators = ['=', '+=', '-=', '*=', '/=', '%=']
 logical_operators = ['&&', '||', '!']
 relational_operators = ['==', '!=', '>', '<', '>=', '<=']
 arithmetic_operators = ['+', '-', '*', '/', '++', '--']
-boolean = ['true','false']
+boolean = ['true', 'false']
 
 
 def isVariable(token):
@@ -20,6 +20,8 @@ def isCharacter(token):
 def token_statement_num(token):
     if token in relational_operators+logical_operators:
         return 17
+    if token in boolean:
+        return 18
     elif token in assignment_operators[1:]:
         return 0
     elif token in arithmetic_operators[:-2]:
