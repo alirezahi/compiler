@@ -93,7 +93,7 @@ def calculate(relational_operation=False):
     global operand_stack
     calculate_res = []
     first_var = operand_stack[-1]
-    looping_var = [first_var]
+    looping_var = []
     reg_add = [0, 0]
     not_bool = False
     if operation_stack[-1] is not '!':
@@ -101,12 +101,13 @@ def calculate(relational_operation=False):
         looping_var.append(second_var)
     else:
         not_bool = True
+    looping_var.append(first_var)
     for tmp_var in looping_var:
         if tmp_var[0] == 'identifier':
             reg_res = find_empty_register(2)
             if not reg_res[0]:
                 calculate_res += get_next_wp()
-                if tmp_var == second_var:
+                if tmp_var == looping_var[1]:
                     reg_add[0] -= 2
                 reg_res = find_empty_register(2)
             if operation_stack[-1] is '!':
@@ -128,7 +129,7 @@ def calculate(relational_operation=False):
                 reg_res = find_empty_register(1)
                 if not reg_res[0]:
                     calculate_res += get_next_wp()
-                    if tmp_var == second_var:
+                    if tmp_var == looping_var[1]:
                         reg_add[0] -= 2
                     reg_res = find_empty_register(1)
                 if operation_stack[-1] is '!':
@@ -137,7 +138,7 @@ def calculate(relational_operation=False):
                 reg_res = find_empty_register(2)
                 if not reg_res[0]:
                     calculate_res += get_next_wp()
-                    if tmp_var == second_var:
+                    if tmp_var == looping_var[1]:
                         reg_add[0] -= 2
                     reg_res = find_empty_register(2)
                 if operation_stack[-1] is '!':
@@ -154,7 +155,7 @@ def calculate(relational_operation=False):
                 reg_res = find_empty_register(2)
                 if not reg_res[0]:
                     calculate_res += get_next_wp()
-                    if tmp_var == second_var:
+                    if tmp_var == looping_var[1]:
                         reg_add[0] -= 2
                     reg_res = find_empty_register(2)
                 if operation_stack[-1] is '!':
@@ -359,12 +360,9 @@ def find_end(tokens, start_token, char):
                 token_enum += 1
 
 
-def store_variable(variable, store_boolean=False):
+def store_variable(variable):
     storing_result = []
-    if store_boolean:
-        cal_result = operand_stack.pop()
-    else:
-        cal_result = operand_stack.pop()
+    cal_result = operand_stack.pop()
     if cal_result[0] == 'identifier':
         reg_res = find_empty_register(2)
         if not reg_res[0]:
@@ -401,6 +399,8 @@ def store_variable(variable, store_boolean=False):
             storing_result.append(store_address(decimal_to_binary(reg_res[1], 2), decimal_to_binary(reg_res[2], 2)))
             Registers_situation[reg_res[1]] = 0
             Registers_situation[reg_res[2]] = 0
+            r = Registers_situation + []
+            storing_result.append(r)
     return storing_result
 
 
@@ -517,6 +517,7 @@ def check_statement(tokens, start=0, end=0):
 #       handling bool defined scope
         if current_state == 7:
             if tmp_state in [14, 15]:
+                tmp_state = 7
                 exp_end = find_end(tokens,start_tmp,';')
                 statement_res += check_expression(tokens,start=start_tmp,end=exp_end-1)
                 current_state = 0
@@ -526,7 +527,7 @@ def check_statement(tokens, start=0, end=0):
                 statement_res += check_expression(tokens, start=token_enum+1, end=exp_end-1)
                 current_state = 0
                 token_enum = exp_end-1
-            statement_res += store_variable(last_var, store_boolean=True)
+            statement_res += store_variable(last_var)
 
 #       handling_if_scope
         if current_state == 0 and tmp_token == 'if':
@@ -541,11 +542,11 @@ def check_statement(tokens, start=0, end=0):
             statement_res += ass_res
 
 #       operation computing
+        if current_state == 15 and tmp_state == 14 and isVariable(tmp_token):
+            not_known_var = tmp_token
         if tmp_state == 15 and current_state in [0, 10]:
             operand_stack.append(['identifier', find_var(not_known_var)])
             statement_res += store_variable(last_var)
-        if current_state == 15 and tmp_state == 14 and isVariable(tmp_token):
-            not_known_var = tmp_token
         if current_state == 10 and tmp_token is not '=':
             if tmp_token is not '(':
                 while len(operation_stack) > 0 and operation_priority[tmp_token] <= operation_priority[operation_stack[-1]]:
@@ -692,3 +693,4 @@ def generate_binary_code(tokens):
         print(z,end=' ')
         z += 1
         print(i)
+
