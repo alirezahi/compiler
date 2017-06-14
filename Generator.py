@@ -492,7 +492,7 @@ def check_expression(tokens, start=0, end=0):
 
 def check_statement(tokens, start=0, end=0):
     statement_res = []
-    global last_available_mem , last_available_number
+    global last_available_mem , last_available_number, operand_stack
     current_state = 0
     token_enum = start
     token_end = end
@@ -532,13 +532,13 @@ def check_statement(tokens, start=0, end=0):
 #       handling_if_scope
         if current_state == 0 and tmp_token == 'if':
             result, ass_res = check_if(tokens,start=token_enum+1)
-            token_enum = result[0] + 1
+            token_enum = result[0]
             statement_res += ass_res
 
 #       handling_while_scope
         elif current_state == 0 and tmp_token == 'while':
             result, ass_res = check_while(tokens, start=token_enum+1)
-            token_enum = result[0] + 1
+            token_enum = result[0]
             statement_res += ass_res
 
 #       operation computing
@@ -548,6 +548,8 @@ def check_statement(tokens, start=0, end=0):
             operand_stack.append(['identifier', find_var(not_known_var)])
             statement_res += store_variable(last_var)
         if current_state == 10 and tmp_token is not '=':
+            if tmp_state == 12:
+                operand_stack.append(['identifier', find_var(last_var)])
             if tmp_token is not '(':
                 while len(operation_stack) > 0 and operation_priority[tmp_token] <= operation_priority[operation_stack[-1]]:
                     statement_res += calculate()
@@ -580,12 +582,14 @@ def check_statement(tokens, start=0, end=0):
 
 
 def check_if(tokens, start):
-    global Registers_situation
+    global Registers_situation, operand_stack
     if_res = []
     token_enum = start + 0
     start_statement = find_end(tokens, token_enum, char=')')
     if_res += check_expression(tokens, start=token_enum + 1, end=start_statement)
     tmp_r = Registers_situation + []
+    tmp_operand_stack = operand_stack + []
+    operand_stack = []
     if tokens[start_statement + 1] == '{':
         end_statement = find_end(tokens, start_statement + 1, char='}')
         if_res_tmp = check_statement(tokens=tokens, start=start_statement + 2, end=end_statement)
@@ -605,6 +609,28 @@ def check_if(tokens, start):
             if_res.append(move_immd_low(decimal_to_binary(reg_res[2], 2), decimal_to_binary(dec_num=tmp_var, low=True)))
             if_res.append(move_immd_high(decimal_to_binary(reg_res[2], 2), decimal_to_binary(dec_num=tmp_var, high=True)))
             if_res.append(load_address(decimal_to_binary(dec_num=reg_res[1],bin_len=2), decimal_to_binary(dec_num=reg_res[2],bin_len=2)))
+            Registers_situation[reg_res[1]] = 1
+        elif operand_stack[-1][0] == 'not_identifier' and operand_stack[-1][1] is 'None':
+            reg_res = find_empty_register(2)
+            if not reg_res[0]:
+                if_res += get_next_wp()
+                reg_res = find_empty_register(2)
+            tmp_var = operand_stack.pop()[-1]
+            if_res.append(move_immd_low(decimal_to_binary(reg_res[1], 2), decimal_to_binary(dec_num=tmp_var, low=True)))
+            if_res.append(move_immd_high(decimal_to_binary(reg_res[1], 2), decimal_to_binary(dec_num=tmp_var, high=True)))
+            Registers_situation[reg_res[1]] = 1
+    Registers_situation = tmp_r
+    operand_stack = tmp_operand_stack
+    if len(operand_stack) > 0:
+        if operand_stack[-1][0] == 'identifier' and operand_stack[-1][1][1] is None:
+            reg_res = find_empty_register(2)
+            if not reg_res[0]:
+                if_res += get_next_wp()
+                reg_res = find_empty_register(2)
+            tmp_var = operand_stack.pop()[1][-1]
+            if_res.append(move_immd_low(decimal_to_binary(reg_res[2], 2), decimal_to_binary(dec_num=tmp_var, low=True)))
+            if_res.append(move_immd_high(decimal_to_binary(reg_res[2], 2), decimal_to_binary(dec_num=tmp_var, high=True)))
+            if_res.append(load_address(decimal_to_binary(dec_num=reg_res[1], bin_len=2),decimal_to_binary(dec_num=reg_res[2], bin_len=2)))
             Registers_situation[reg_res[1]] = 1
         elif operand_stack[-1][0] == 'not_identifier' and operand_stack[-1][1] is 'None':
             reg_res = find_empty_register(2)
@@ -639,17 +665,43 @@ def check_if(tokens, start):
 
 
 def check_while(tokens, start):
+    global Registers_situation, operand_stack
     while_res = []
     token_enum = start + 0
     start_statement = find_end(tokens, token_enum, char=')')
     while_res_tmp_exp = check_expression(tokens, start=token_enum + 1, end=start_statement)
     while_res += while_res_tmp_exp
+    tmp_r = Registers_situation + []
+    tmp_operand_stack = operand_stack + []
+    operand_stack = []
     if tokens[start_statement+1] == '{':
         end_statement = find_end(tokens, start_statement + 1, char='}')
         while_res_tmp = check_statement(tokens=tokens, start=start_statement + 2, end=end_statement)
     else:
         end_statement = find_end(tokens, start_statement + 1, char=';')
         while_res_tmp = check_statement(tokens=tokens, start=start_statement + 1, end=end_statement)
+    Registers_situation = tmp_r
+    operand_stack = tmp_operand_stack
+    if len(operand_stack) > 0:
+        if operand_stack[-1][0] == 'identifier' and operand_stack[-1][1][1] is None:
+            reg_res = find_empty_register(2)
+            if not reg_res[0]:
+                while_res += get_next_wp()
+                reg_res = find_empty_register(2)
+            tmp_var = operand_stack.pop()[1][-1]
+            while_res.append(move_immd_low(decimal_to_binary(reg_res[2], 2), decimal_to_binary(dec_num=tmp_var, low=True)))
+            while_res.append(move_immd_high(decimal_to_binary(reg_res[2], 2), decimal_to_binary(dec_num=tmp_var, high=True)))
+            while_res.append(load_address(decimal_to_binary(dec_num=reg_res[1], bin_len=2),decimal_to_binary(dec_num=reg_res[2], bin_len=2)))
+            Registers_situation[reg_res[1]] = 1
+        elif operand_stack[-1][0] == 'not_identifier' and operand_stack[-1][1] is 'None':
+            reg_res = find_empty_register(2)
+            if not reg_res[0]:
+                while_res += get_next_wp()
+                reg_res = find_empty_register(2)
+            tmp_var = operand_stack.pop()[-1]
+            while_res.append(move_immd_low(decimal_to_binary(reg_res[1], 2), decimal_to_binary(dec_num=tmp_var, low=True)))
+            while_res.append(move_immd_high(decimal_to_binary(reg_res[1], 2), decimal_to_binary(dec_num=tmp_var, high=True)))
+            Registers_situation[reg_res[1]] = 1
     reg_res = find_empty_register(2)
     if not reg_res[0]:
         while_res += get_next_wp()
